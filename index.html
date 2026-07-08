@@ -1,0 +1,3227 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SPU JD & Workload FTB Registry</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --surface: #ffffff;
+      --surface-2: #eef3f5;
+      --text: #1f2933;
+      --muted: #64707d;
+      --line: #d9e1e6;
+      --brand: #0f766e;
+      --brand-2: #2563eb;
+      --warn: #b7791f;
+      --danger: #b91c1c;
+      --ok: #15803d;
+      --ink: #263238;
+      --shadow: 0 12px 28px rgba(18, 38, 63, .08);
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      letter-spacing: 0;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+      color: inherit;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      background: var(--surface);
+      min-height: 36px;
+      padding: 8px 12px;
+      border-radius: 7px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    button:hover { border-color: #9aa8b4; }
+    button.primary { background: var(--brand); color: #fff; border-color: var(--brand); }
+    button.blue { background: var(--brand-2); color: #fff; border-color: var(--brand-2); }
+    button.danger { background: #fff5f5; color: var(--danger); border-color: #fecaca; }
+    button.ghost { background: transparent; }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+
+    input, select, textarea {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      padding: 8px 10px;
+      outline: none;
+    }
+
+    textarea { min-height: 84px; resize: vertical; }
+    input:focus, select:focus, textarea:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(15, 118, 110, .12); }
+
+    .app {
+      display: grid;
+      grid-template-columns: 252px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: #17242d;
+      color: #e8eef2;
+      padding: 18px 14px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+    }
+
+    .brand {
+      padding: 6px 8px 16px;
+      border-bottom: 1px solid rgba(255,255,255,.12);
+      margin-bottom: 14px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.28;
+      font-weight: 700;
+    }
+
+    .brand p {
+      margin: 8px 0 0;
+      color: #aebbc5;
+      font-size: 13px;
+    }
+
+    .nav {
+      display: grid;
+      gap: 5px;
+    }
+
+    .nav button {
+      justify-content: flex-start;
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: #dce6eb;
+      padding: 10px 9px;
+      border-radius: 7px;
+    }
+
+    .nav button:hover { background: rgba(255,255,255,.08); }
+    .nav button.active { background: #0f766e; color: #fff; }
+
+    .main {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      padding: 13px 22px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .title h2 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.25;
+    }
+
+    .title p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .identity {
+      display: grid;
+      grid-template-columns: minmax(160px, 220px) minmax(150px, 190px);
+      gap: 10px;
+      align-items: end;
+    }
+
+    .content {
+      padding: 22px;
+      display: grid;
+      gap: 16px;
+      align-content: start;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(120px, 1fr));
+      gap: 10px;
+      align-items: end;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .toolbar .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .cols-2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    .cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      min-width: 0;
+    }
+
+    .panel-head {
+      padding: 14px 15px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .panel-head h3 {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.25;
+    }
+
+    .panel-body { padding: 15px; }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .kpi {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px;
+      min-height: 96px;
+      display: grid;
+      align-content: space-between;
+      box-shadow: var(--shadow);
+    }
+
+    .kpi span { color: var(--muted); font-size: 13px; }
+    .kpi strong { font-size: 28px; line-height: 1.1; }
+    .kpi small { color: var(--muted); }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .field {
+      display: grid;
+      gap: 5px;
+      min-width: 0;
+    }
+
+    .field label {
+      font-size: 13px;
+      color: #43515d;
+      font-weight: 600;
+    }
+
+    .span-2 { grid-column: 1 / -1; }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+      background: #fff;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px;
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f0f4f6;
+      color: #384653;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .row-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 24px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: var(--surface-2);
+      color: #344450;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge.ok { background: #dcfce7; color: #166534; }
+    .badge.warn { background: #fef3c7; color: #92400e; }
+    .badge.danger { background: #fee2e2; color: #991b1b; }
+    .badge.blue { background: #dbeafe; color: #1d4ed8; }
+
+    .months {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(62px, 1fr));
+      gap: 8px;
+    }
+
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 7px;
+      background: #fff;
+      min-height: 36px;
+    }
+
+    .check input {
+      width: 16px;
+      min-height: 16px;
+      padding: 0;
+    }
+
+    .bars {
+      display: grid;
+      gap: 10px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 170px 1fr 70px;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .bar-track {
+      height: 18px;
+      background: #edf2f7;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      background: var(--brand-2);
+      min-width: 2px;
+    }
+
+    .heatmap {
+      display: grid;
+      grid-template-columns: 120px repeat(12, minmax(52px, 1fr));
+      gap: 6px;
+      align-items: stretch;
+      overflow: auto;
+    }
+
+    .heat-cell, .heat-head, .heat-label {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      min-height: 38px;
+      padding: 7px;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      background: #fff;
+    }
+
+    .heat-head, .heat-label {
+      background: #f0f4f6;
+      color: #43515d;
+      font-weight: 700;
+    }
+
+    .heat-cell[data-level="1"] { background: #dff7ed; }
+    .heat-cell[data-level="2"] { background: #b7e4d9; }
+    .heat-cell[data-level="3"] { background: #fef3c7; }
+    .heat-cell[data-level="4"] { background: #fecaca; }
+
+    .org-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 16px;
+    }
+
+    .tree {
+      overflow: auto;
+      padding: 10px;
+      min-height: 500px;
+    }
+
+    .tree ul {
+      list-style: none;
+      margin: 0;
+      padding-left: 28px;
+      position: relative;
+    }
+
+    .tree li {
+      position: relative;
+      padding: 8px 0 8px 18px;
+    }
+
+    .tree li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 24px;
+      width: 16px;
+      border-top: 1px solid #b8c5ce;
+    }
+
+    .node {
+      display: inline-grid;
+      gap: 5px;
+      min-width: 240px;
+      max-width: 340px;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-left: 5px solid var(--brand);
+      border-radius: var(--radius);
+      padding: 10px;
+      box-shadow: 0 8px 18px rgba(18, 38, 63, .08);
+      cursor: pointer;
+    }
+
+    .node:hover { border-color: #9aa8b4; }
+    .node.selected { outline: 3px solid rgba(37, 99, 235, .18); }
+    .node strong { font-size: 14px; }
+    .node small { color: var(--muted); }
+
+    .drawer {
+      border-left: 4px solid var(--brand-2);
+      background: #fff;
+      border-radius: var(--radius);
+      border-top: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+      align-content: start;
+      min-height: 500px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tabs button.active {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: #fff;
+    }
+
+    .stepper {
+      display: grid;
+      gap: 12px;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      overflow: hidden;
+    }
+
+    summary {
+      padding: 12px 14px;
+      cursor: pointer;
+      font-weight: 700;
+      background: #f0f4f6;
+    }
+
+    details .inside { padding: 14px; }
+
+    .notice {
+      border: 1px solid #b7e4d9;
+      background: #effcf7;
+      color: #134e4a;
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      font-size: 13px;
+    }
+
+    .empty {
+      padding: 18px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .status-line {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    @media (max-width: 1100px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { position: static; height: auto; }
+      .nav { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .topbar { grid-template-columns: 1fr; }
+      .identity, .toolbar, .kpis, .cols-2, .cols-3, .cols-4, .org-layout { grid-template-columns: 1fr; }
+      .content { padding: 14px; }
+      .months { grid-template-columns: repeat(3, minmax(62px, 1fr)); }
+    }
+
+    @media (max-width: 640px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .span-2 { grid-column: auto; }
+      .nav { grid-template-columns: 1fr 1fr; }
+      .months { grid-template-columns: repeat(2, minmax(62px, 1fr)); }
+      .bar-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <h1>SPU JD & Workload FTB Registry</h1>
+        <p>ระบบต้นแบบสำหรับ JD, Workload, FTB และโครงสร้างหน่วยงาน</p>
+      </div>
+      <nav class="nav" id="nav"></nav>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="title">
+          <h2 id="pageTitle">Dashboard</h2>
+          <p id="pageSubtitle">ภาพรวมข้อมูลภาระงานและ FTB</p>
+        </div>
+        <div class="identity">
+          <div class="field">
+            <label for="roleSelect">บทบาท</label>
+            <select id="roleSelect"></select>
+          </div>
+          <div class="field">
+            <label for="scopeSelect">ขอบเขตหน่วยงาน</label>
+            <select id="scopeSelect"></select>
+          </div>
+        </div>
+      </header>
+      <section class="content" id="view"></section>
+    </main>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "spu-ftb-registry-real-v2";
+    const MONTHS = [
+      ["aug", "ส.ค."], ["sep", "ก.ย."], ["oct", "ต.ค."], ["nov", "พ.ย."],
+      ["dec", "ธ.ค."], ["jan", "ม.ค."], ["feb", "ก.พ."], ["mar", "มี.ค."],
+      ["apr", "เม.ย."], ["may", "พ.ค."], ["jun", "มิ.ย."], ["jul", "ก.ค."]
+    ];
+
+    const tabs = [
+      ["dashboard", "⌂", "Dashboard", "ภาพรวมข้อมูลภาระงานและ FTB"],
+      ["workloads", "▣", "JD & Workload", "บันทึก JD ภาระงาน ช่วงเดือน และ FTB"],
+      ["orgs", "◇", "Organization", "จัดการหน่วยงานแบบ parent-child"],
+      ["positions", "▤", "Position", "จัดการตำแหน่งและสายบังคับบัญชา"],
+      ["persons", "◉", "Person", "จัดการบุคลากรและการดำรงตำแหน่ง"],
+      ["chart", "☷", "Org Chart", "แผนผังหน่วยงานจากข้อมูลจริง"],
+      ["reports", "⇩", "Reports", "รายงานและส่งออกข้อมูล"],
+      ["audit", "◷", "Audit Log", "ประวัติการแก้ไขข้อมูลสำคัญ"]
+    ];
+
+    const roles = [
+      ["admin", "Admin"],
+      ["hr", "HR"],
+      ["unit_admin", "Unit Admin"],
+      ["recorder", "Data Recorder"],
+      ["viewer", "Viewer"]
+    ];
+
+    const seed = {
+      "settings": {
+            "academicYear": "2568",
+            "standardHours": 1680,
+            "currentUser": "ผู้ดูแลระบบ",
+            "role": "admin",
+            "orgScope": "all"
+      },
+      "sourceMetadata": {
+            "datasetName": "JD_Workload_FTB_Raw_Data",
+            "generatedAt": "2026-07-08T08:26:42",
+            "sourceWorkbook": "JD_Workload_FTB_Raw_Data_Template.xlsx",
+            "sourceFile": "JD_Workload_FTB_Raw_Data.json",
+            "recordCounts": {
+                  "organizations": 2,
+                  "positions": 1,
+                  "persons": 14,
+                  "position_assignments": 1,
+                  "job_duties": 21,
+                  "duty_responsibilities": 47,
+                  "duty_months": 202,
+                  "workload_calendar_wide": 21,
+                  "ftb_inputs": 21,
+                  "ftb_weights": 10,
+                  "ftb_snapshots": 0,
+                  "audit_log_template": 1,
+                  "lookup_master": 47
+            },
+            "note": "นำเข้าจากข้อมูลจริงที่ผู้ใช้ให้มา โดยไม่ใช้ seed data สมมุติชุดเดิม"
+      },
+      "orgs": [
+            {
+                  "id": "ORG000",
+                  "code": "SPU",
+                  "name": "มหาวิทยาลัยศรีปทุม",
+                  "type": "University",
+                  "parentId": "",
+                  "managerPersonId": "",
+                  "active": true,
+                  "source": "system_seed"
+            },
+            {
+                  "id": "ORG001",
+                  "code": "RCQA",
+                  "name": "ศูนย์ส่งเสริมการวิจัยและประกันคุณภาพการศึกษา",
+                  "type": "Center",
+                  "parentId": "ORG000",
+                  "managerPersonId": "",
+                  "active": true,
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            }
+      ],
+      "positions": [
+            {
+                  "id": "POS001",
+                  "name": "ผู้อำนวยการ ศูนย์ส่งเสริมการวิจัยและประกันคุณภาพการศึกษา",
+                  "orgId": "ORG001",
+                  "level": "Director",
+                  "type": "Official Position",
+                  "supervisorPositionId": "",
+                  "active": true,
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            }
+      ],
+      "persons": [
+            {
+                  "id": "P001",
+                  "code": "P001",
+                  "name": "รศ.กัลยาภรณ์ ปานมะเริง",
+                  "email": "",
+                  "orgId": "ORG001",
+                  "positionId": "",
+                  "fteRatio": 1,
+                  "status": "active",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "P002",
+                  "code": "P002",
+                  "name": "คุณสุวรรณี นนทการ (แทน)",
+                  "email": "",
+                  "orgId": "ORG001",
+                  "positionId": "",
+                  "fteRatio": 1,
+                  "status": "active",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "P003",
+                  "code": "P003",
+                  "name": "ผศ.ดร.ชลธิศ เอี่ยมวรวุฒิกุล",
+                  "email": "",
+                  "orgId": "ORG001",
+                  "positionId": "",
+                  "fteRatio": 1,
+                  "status": "active",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "P004",
+                  "code": "P004",
+                  "name": "เจ้าหน้าที่ สำนักงานผู้ช่วยอธิการบดี (ผศ.ดร.ชลธิศ เอี่ยมวรวุฒิกุล) (แทน)",
+                  "email": "",
+                  "orgId": "ORG001",
+                  "positionId": "",
+                  "fteRatio": 1,
+                  "status": "active",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "P005",
+                  "code": "P005",
+                  "name": "คุณกชกร พรหมมา (แทน)",
+                  "email": "",
+                  "orgId": "ORG001",
+                  "positionId": "",
+                  "fteRatio": 1,
+                  "status": "active",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "P006",
+                  "code": "P006",
+                  "name": "คุณแสงอรุณ นกแอนหมาน เจ้าหน้าที่ส่วนงานวิจัยคนใหม่ เริ่มงาน 16 ก.พ.69) (ฝ่ายจัดการวารสารฯ)",
+                  "email": "",
+                  "orgId": "ORG001",
+                  "positionId": "",
+                  "fteRatio": 1,
+                  "status": "active",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "P007",
+                  "code": "P007",
+                  "name": "คุณแสงอรุณ นกแอนหมาน เจ้าหน้าที่ส่วนงานวิจัยคนใหม่ (เริ่มงาน 16 ก.พ.69)",
+                  "email": "",
+                  "orgId": "ORG001",
+                  "positionId": "",
+                  "fteRatio": 1,
+                  "status": "active",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "P008",
+                  "code": "P008",
+                  "name": "อ.ชิดใจ วงษ์วุฒิพงษ์",
+                  "email": "",
+                  "orgId": "ORG001",
+                  "positionId": "",
+                  "fteRatio": 1,
+                  "status": "active",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "P009",
+                  "code": "P009",
+                  "name": "ผศ.ดร.วิรัช เลิศไพฑูรย์พันธ์",
+                  "email": "",
+                  "orgId": "ORG001",
+                  "positionId": "",
+                  "fteRatio": 1,
+                  "status": "active",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "P010",
+                  "code": "P010",
+                  "name": "คุณกชกร พรหมมา",
+                  "email": "",
+                  "orgId": "ORG001",
+                  "positionId": "",
+                  "fteRatio": 1,
+                  "status": "active",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "P011",
+                  "code": "P011",
+                  "name": "อาจารย์กิติกุล ปุณศรี",
+                  "email": "",
+                  "orgId": "ORG001",
+                  "positionId": "",
+                  "fteRatio": 1,
+                  "status": "active",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "P012",
+                  "code": "P012",
+                  "name": "รศ.ดร.วิชิต อู่อ้น",
+                  "email": "",
+                  "orgId": "ORG001",
+                  "positionId": "",
+                  "fteRatio": 1,
+                  "status": "active",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "P013",
+                  "code": "P013",
+                  "name": "ผศ.ดร.วราภรณ์ไทยมา",
+                  "email": "",
+                  "orgId": "ORG001",
+                  "positionId": "",
+                  "fteRatio": 1,
+                  "status": "active",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "P014",
+                  "code": "P014",
+                  "name": "ดร.สุพรรณี สมานญาติ",
+                  "email": "",
+                  "orgId": "ORG001",
+                  "positionId": "",
+                  "fteRatio": 1,
+                  "status": "active",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            }
+      ],
+      "responsibilities": [
+            {
+                  "id": "RESP0001",
+                  "dutyId": "JD001",
+                  "personId": "P001",
+                  "actorName": "รศ.กัลยาภรณ์ ปานมะเริง",
+                  "roleType": "Supervisor",
+                  "roleWeight": 0.15,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": false,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0002",
+                  "dutyId": "JD001",
+                  "personId": "P002",
+                  "actorName": "คุณสุวรรณี นนทการ (แทน)",
+                  "roleType": "Owner",
+                  "roleWeight": 1,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": true,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0003",
+                  "dutyId": "JD002",
+                  "personId": "P003",
+                  "actorName": "ผศ.ดร.ชลธิศ เอี่ยมวรวุฒิกุล",
+                  "roleType": "Supervisor",
+                  "roleWeight": 0.15,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": false,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0004",
+                  "dutyId": "JD002",
+                  "personId": "P004",
+                  "actorName": "เจ้าหน้าที่ สำนักงานผู้ช่วยอธิการบดี (ผศ.ดร.ชลธิศ เอี่ยมวรวุฒิกุล) (แทน)",
+                  "roleType": "Owner",
+                  "roleWeight": 1,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": true,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0005",
+                  "dutyId": "JD003",
+                  "personId": "P001",
+                  "actorName": "รศ.กัลยาภรณ์ ปานมะเริง",
+                  "roleType": "Supervisor",
+                  "roleWeight": 0.15,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": false,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0006",
+                  "dutyId": "JD003",
+                  "personId": "P005",
+                  "actorName": "คุณกชกร พรหมมา (แทน)",
+                  "roleType": "Owner",
+                  "roleWeight": 1,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": true,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0007",
+                  "dutyId": "JD004",
+                  "personId": "P001",
+                  "actorName": "รศ.กัลยาภรณ์ ปานมะเริง",
+                  "roleType": "Supervisor",
+                  "roleWeight": 0.15,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": false,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0008",
+                  "dutyId": "JD004",
+                  "personId": "P006",
+                  "actorName": "คุณแสงอรุณ นกแอนหมาน เจ้าหน้าที่ส่วนงานวิจัยคนใหม่ เริ่มงาน 16 ก.พ.69) (ฝ่ายจัดการวารสารฯ)",
+                  "roleType": "Owner",
+                  "roleWeight": 1,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": true,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0009",
+                  "dutyId": "JD005",
+                  "personId": "P001",
+                  "actorName": "รศ.กัลยาภรณ์ ปานมะเริง",
+                  "roleType": "Supervisor",
+                  "roleWeight": 0.15,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": false,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0010",
+                  "dutyId": "JD005",
+                  "personId": "P007",
+                  "actorName": "คุณแสงอรุณ นกแอนหมาน เจ้าหน้าที่ส่วนงานวิจัยคนใหม่ (เริ่มงาน 16 ก.พ.69)",
+                  "roleType": "Owner",
+                  "roleWeight": 1,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": true,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0011",
+                  "dutyId": "JD006",
+                  "personId": "P001",
+                  "actorName": "รศ.กัลยาภรณ์ ปานมะเริง",
+                  "roleType": "Supervisor",
+                  "roleWeight": 0.15,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": false,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0012",
+                  "dutyId": "JD006",
+                  "personId": "P008",
+                  "actorName": "อ.ชิดใจ วงษ์วุฒิพงษ์",
+                  "roleType": "Owner",
+                  "roleWeight": 1,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": true,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0013",
+                  "dutyId": "JD006",
+                  "personId": "P005",
+                  "actorName": "คุณกชกร พรหมมา (แทน)",
+                  "roleType": "Owner",
+                  "roleWeight": 1,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": true,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0014",
+                  "dutyId": "JD007",
+                  "personId": "P003",
+                  "actorName": "ผศ.ดร.ชลธิศ เอี่ยมวรวุฒิกุล",
+                  "roleType": "Supervisor",
+                  "roleWeight": 0.15,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": false,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0015",
+                  "dutyId": "JD007",
+                  "personId": "P007",
+                  "actorName": "คุณแสงอรุณ นกแอนหมาน เจ้าหน้าที่ส่วนงานวิจัยคนใหม่ (เริ่มงาน 16 ก.พ.69)",
+                  "roleType": "Owner",
+                  "roleWeight": 1,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": true,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0016",
+                  "dutyId": "JD008",
+                  "personId": "P003",
+                  "actorName": "ผศ.ดร.ชลธิศ เอี่ยมวรวุฒิกุล",
+                  "roleType": "Supervisor",
+                  "roleWeight": 0.15,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": false,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0017",
+                  "dutyId": "JD008",
+                  "personId": "P007",
+                  "actorName": "คุณแสงอรุณ นกแอนหมาน เจ้าหน้าที่ส่วนงานวิจัยคนใหม่ (เริ่มงาน 16 ก.พ.69)",
+                  "roleType": "Owner",
+                  "roleWeight": 1,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": true,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0018",
+                  "dutyId": "JD009",
+                  "personId": "P009",
+                  "actorName": "ผศ.ดร.วิรัช เลิศไพฑูรย์พันธ์",
+                  "roleType": "Supervisor",
+                  "roleWeight": 0.15,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": false,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0019",
+                  "dutyId": "JD009",
+                  "personId": "P007",
+                  "actorName": "คุณแสงอรุณ นกแอนหมาน เจ้าหน้าที่ส่วนงานวิจัยคนใหม่ (เริ่มงาน 16 ก.พ.69)",
+                  "roleType": "Owner",
+                  "roleWeight": 1,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": true,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0020",
+                  "dutyId": "JD010",
+                  "personId": "P001",
+                  "actorName": "รศ.กัลยาภรณ์ ปานมะเริง",
+                  "roleType": "Supervisor",
+                  "roleWeight": 0.15,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": false,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0021",
+                  "dutyId": "JD010",
+                  "personId": "P007",
+                  "actorName": "คุณแสงอรุณ นกแอนหมาน เจ้าหน้าที่ส่วนงานวิจัยคนใหม่ (เริ่มงาน 16 ก.พ.69)",
+                  "roleType": "Owner",
+                  "roleWeight": 1,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": true,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0022",
+                  "dutyId": "JD011",
+                  "personId": "P001",
+                  "actorName": "รศ.กัลยาภรณ์ ปานมะเริง",
+                  "roleType": "Supervisor",
+                  "roleWeight": 0.15,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": false,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0023",
+                  "dutyId": "JD011",
+                  "personId": "P007",
+                  "actorName": "คุณแสงอรุณ นกแอนหมาน เจ้าหน้าที่ส่วนงานวิจัยคนใหม่ (เริ่มงาน 16 ก.พ.69)",
+                  "roleType": "Owner",
+                  "roleWeight": 1,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": true,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0024",
+                  "dutyId": "JD012",
+                  "personId": "P001",
+                  "actorName": "รศ.กัลยาภรณ์ ปานมะเริง",
+                  "roleType": "Supervisor",
+                  "roleWeight": 0.15,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": false,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0025",
+                  "dutyId": "JD012",
+                  "personId": "P008",
+                  "actorName": "อ.ชิดใจ วงษ์วุฒิพงษ์",
+                  "roleType": "Owner",
+                  "roleWeight": 1,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": true,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0026",
+                  "dutyId": "JD012",
+                  "personId": "P010",
+                  "actorName": "คุณกชกร พรหมมา",
+                  "roleType": "Owner",
+                  "roleWeight": 1,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": true,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0027",
+                  "dutyId": "JD013",
+                  "personId": "P001",
+                  "actorName": "รศ.กัลยาภรณ์ ปานมะเริง",
+                  "roleType": "Supervisor",
+                  "roleWeight": 0.15,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": false,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0028",
+                  "dutyId": "JD013",
+                  "personId": "P008",
+                  "actorName": "อ.ชิดใจ วงษ์วุฒิพงษ์",
+                  "roleType": "Owner",
+                  "roleWeight": 1,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": true,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0029",
+                  "dutyId": "JD013",
+                  "personId": "P010",
+                  "actorName": "คุณกชกร พรหมมา",
+                  "roleType": "Owner",
+                  "roleWeight": 1,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": true,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0030",
+                  "dutyId": "JD014",
+                  "personId": "P001",
+                  "actorName": "รศ.กัลยาภรณ์ ปานมะเริง",
+                  "roleType": "Supervisor",
+                  "roleWeight": 0.15,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": false,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0031",
+                  "dutyId": "JD014",
+                  "personId": "P008",
+                  "actorName": "อ.ชิดใจ วงษ์วุฒิพงษ์",
+                  "roleType": "Owner",
+                  "roleWeight": 1,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": true,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0032",
+                  "dutyId": "JD014",
+                  "personId": "P010",
+                  "actorName": "คุณกชกร พรหมมา",
+                  "roleType": "Owner",
+                  "roleWeight": 1,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": true,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0033",
+                  "dutyId": "JD015",
+                  "personId": "P003",
+                  "actorName": "ผศ.ดร.ชลธิศ เอี่ยมวรวุฒิกุล",
+                  "roleType": "Supervisor",
+                  "roleWeight": 0.15,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": false,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0034",
+                  "dutyId": "JD015",
+                  "personId": "P004",
+                  "actorName": "เจ้าหน้าที่ สำนักงานผู้ช่วยอธิการบดี (ผศ.ดร.ชลธิศ เอี่ยมวรวุฒิกุล) (แทน)",
+                  "roleType": "Owner",
+                  "roleWeight": 1,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": true,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0035",
+                  "dutyId": "JD016",
+                  "personId": "P011",
+                  "actorName": "อาจารย์กิติกุล ปุณศรี",
+                  "roleType": "Supervisor",
+                  "roleWeight": 0.15,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": false,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0036",
+                  "dutyId": "JD017",
+                  "personId": "P011",
+                  "actorName": "อาจารย์กิติกุล ปุณศรี",
+                  "roleType": "Supervisor",
+                  "roleWeight": 0.15,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": false,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0037",
+                  "dutyId": "JD018",
+                  "personId": "P003",
+                  "actorName": "ผศ.ดร.ชลธิศ เอี่ยมวรวุฒิกุล",
+                  "roleType": "Supervisor",
+                  "roleWeight": 0.15,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": false,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0038",
+                  "dutyId": "JD018",
+                  "personId": "P008",
+                  "actorName": "อ.ชิดใจ วงษ์วุฒิพงษ์",
+                  "roleType": "Owner",
+                  "roleWeight": 1,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": true,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0039",
+                  "dutyId": "JD018",
+                  "personId": "P010",
+                  "actorName": "คุณกชกร พรหมมา",
+                  "roleType": "Owner",
+                  "roleWeight": 1,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": true,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0040",
+                  "dutyId": "JD019",
+                  "personId": "P001",
+                  "actorName": "รศ.กัลยาภรณ์ ปานมะเริง",
+                  "roleType": "Supervisor",
+                  "roleWeight": 0.15,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": false,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0041",
+                  "dutyId": "JD019",
+                  "personId": "P002",
+                  "actorName": "คุณสุวรรณี นนทการ (แทน)",
+                  "roleType": "Owner",
+                  "roleWeight": 1,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": true,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0042",
+                  "dutyId": "JD020",
+                  "personId": "P003",
+                  "actorName": "ผศ.ดร.ชลธิศ เอี่ยมวรวุฒิกุล",
+                  "roleType": "Supervisor",
+                  "roleWeight": 0.15,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": false,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0043",
+                  "dutyId": "JD020",
+                  "personId": "P008",
+                  "actorName": "อ.ชิดใจ วงษ์วุฒิพงษ์",
+                  "roleType": "Owner",
+                  "roleWeight": 1,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": true,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0044",
+                  "dutyId": "JD020",
+                  "personId": "P010",
+                  "actorName": "คุณกชกร พรหมมา",
+                  "roleType": "Owner",
+                  "roleWeight": 1,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": true,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0045",
+                  "dutyId": "JD021",
+                  "personId": "P012",
+                  "actorName": "รศ.ดร.วิชิต อู่อ้น",
+                  "roleType": "Supervisor",
+                  "roleWeight": 0.15,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": false,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0046",
+                  "dutyId": "JD021",
+                  "personId": "P013",
+                  "actorName": "ผศ.ดร.วราภรณ์ไทยมา",
+                  "roleType": "Owner",
+                  "roleWeight": 1,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": true,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            },
+            {
+                  "id": "RESP0047",
+                  "dutyId": "JD021",
+                  "personId": "P014",
+                  "actorName": "ดร.สุพรรณี สมานญาติ",
+                  "roleType": "Owner",
+                  "roleWeight": 1,
+                  "responsibilityPercent": null,
+                  "isPrimaryOwner": true,
+                  "extractionStatus": "source_extracted",
+                  "source": "ภาระงาน.ผอ.ศวป.docx"
+            }
+      ],
+      "duties": [
+            {
+                  "id": "JD001",
+                  "academicYear": "2568",
+                  "orgId": "ORG001",
+                  "category": "ส่วนงานวิจัย",
+                  "subcategory": "ลำดับ 1",
+                  "title": "บริหารจัดการทุนวิจัยที่ได้รับจากมหาวิทยาลัย (ปกศ. 2566-2568)",
+                  "detail": "บริหารจัดการทุนวิจัยที่ได้รับจากมหาวิทยาลัย\n(ปกศ. 2566-2568)\n-การยื่นขอรับทุนวิจัยและการอนุมัติทุน\n-การติดตามการดำเนินงานวิจัย\n\nช่วงเวลาดำเนินการ:\n1. ตลอดปีการศึกษา\n2.ประชุมคณะกรรมการฯ ทุก 2 เดือน\n\nบทบาทตามเอกสาร:\nเลขานุการ คณะกรรมการส่งเสริมการวิจัย",
+                  "deliverable": "เลขานุการ คณะกรรมการส่งเสริมการวิจัย",
+                  "references": "คำสั่งมหาวิทยาลัยศรีปทุม ที่ คส.มศป. 503/2565 ลงวันที่ 22 พ.ย. 2565\n\nแหล่งอ้างอิง: ภาระงาน.ผอ.ศวป.docx / table 1 row 2\n\nข้อมูล ณ วันที่: 19 มกราคม 2569",
+                  "frequency": 0,
+                  "volume": 0,
+                  "hoursPerUnit": 0,
+                  "dutyWeight": 1,
+                  "roleWeight": 1,
+                  "responsibilityPercent": 100,
+                  "ownerPersonId": "P002",
+                  "ownerPositionId": "",
+                  "supervisorPersonId": "P001",
+                  "approverPersonId": "P001",
+                  "months": [
+                        "aug",
+                        "sep",
+                        "oct",
+                        "nov",
+                        "dec",
+                        "jan",
+                        "feb",
+                        "mar",
+                        "apr",
+                        "may",
+                        "jun",
+                        "jul"
+                  ],
+                  "status": "approved",
+                  "isFtbCounted": true,
+                  "attachmentsNote": "ภาระงาน.ผอ.ศวป.docx / table 1 row 2",
+                  "sourceStatus": "Active",
+                  "sourceReference": "ภาระงาน.ผอ.ศวป.docx / table 1 row 2",
+                  "sourceActiveMonthCount": 12,
+                  "ftbInputNote": "กรอก volume/frequency/hours หรือ score เพื่อให้สูตรคำนวณ FTB",
+                  "createdAt": "2026-07-08T01:26:42.000Z",
+                  "updatedAt": "2026-07-08T01:26:42.000Z"
+            },
+            {
+                  "id": "JD002",
+                  "academicYear": "2568",
+                  "orgId": "ORG001",
+                  "category": "ส่วนงานวิจัย",
+                  "subcategory": "ลำดับ 2",
+                  "title": "บริหารจัดการทุนวิจัยจากหน่วยงานภายนอก",
+                  "detail": "บริหารจัดการทุนวิจัยจากหน่วยงานภายนอก\n-การเขียนข้อเสนอโครงการวิจัยเพื่อขอรับทุนจากหน่วยงานภายนอก\n-ดูแลระบบ NRIIS เพื่อขอรับทุนจาก PMU จำนวน 11 แห่ง\n-บริหารจัดการทุน FF\n(ปงม. 2566-2570)\n\nช่วงเวลาดำเนินการ:\n1. ตลอดปีการศึกษา\n2.ติดตามการดำเนินโครงการวิจัยฯ ของผู้รับทุนวิจัย ทุก 4 เดือน\n3.ประชุมคณะกรรมการส่งเสริมการวิจัย เพื่อพิจารณาข้อเสนอโครงการ (1-2 ครั้ง ก่อนเสนอ สกสว.)\n\nบทบาทตามเอกสาร:\nผู้ดูแลระบบ NRIIS ของมหาวิทยาลัย (Admin)",
+                  "deliverable": "ผู้ดูแลระบบ NRIIS ของมหาวิทยาลัย (Admin)",
+                  "references": "NRIIS: National Research and Innovation Information System/ ระบบข้อมูลสารสนเทศวิจัยและนวัตกรรมแห่งชาติ\n\nแหล่งอ้างอิง: ภาระงาน.ผอ.ศวป.docx / table 1 row 3\n\nข้อมูล ณ วันที่: 19 มกราคม 2569",
+                  "frequency": 0,
+                  "volume": 0,
+                  "hoursPerUnit": 0,
+                  "dutyWeight": 1,
+                  "roleWeight": 1,
+                  "responsibilityPercent": 100,
+                  "ownerPersonId": "P004",
+                  "ownerPositionId": "",
+                  "supervisorPersonId": "P003",
+                  "approverPersonId": "P003",
+                  "months": [
+                        "aug",
+                        "sep",
+                        "oct",
+                        "nov",
+                        "dec",
+                        "jan",
+                        "feb",
+                        "mar",
+                        "apr",
+                        "may",
+                        "jun",
+                        "jul"
+                  ],
+                  "status": "approved",
+                  "isFtbCounted": true,
+                  "attachmentsNote": "ภาระงาน.ผอ.ศวป.docx / table 1 row 3",
+                  "sourceStatus": "Active",
+                  "sourceReference": "ภาระงาน.ผอ.ศวป.docx / table 1 row 3",
+                  "sourceActiveMonthCount": 12,
+                  "ftbInputNote": "กรอก volume/frequency/hours หรือ score เพื่อให้สูตรคำนวณ FTB",
+                  "createdAt": "2026-07-08T01:26:42.000Z",
+                  "updatedAt": "2026-07-08T01:26:42.000Z"
+            },
+            {
+                  "id": "JD003",
+                  "academicYear": "2568",
+                  "orgId": "ORG001",
+                  "category": "ส่วนงานวิจัย",
+                  "subcategory": "ลำดับ 3",
+                  "title": "การขอใบรับรองจริยธรรมการวิจัยในคน (IRB)",
+                  "detail": "การขอใบรับรองจริยธรรมการวิจัยในคน\n(IRB)\n-พิจารณาและออกใบรับรองจริยธรรมการวิจัยในคน ให้กับอาจารย์ และนักศึกษาระดับปริญญาบัณฑิตศึกษา จำนวน 3 ประเภท ได้แก่\n1) Exemption 2) Expedited 3) Full board\n\nช่วงเวลาดำเนินการ:\n1. ตลอดปีการศึกษา\n2.กรณี Full board ประชุมคณะกรรมการจริยธรรมฯ ทุก 2 เดือน\n3.กรณี Exemption/\nExpedited เดือนละ 1 ครั้ง\n\nบทบาทตามเอกสาร:\nกรรมการและเลขานุการ คณะกรรมการจริยธรรมการวิจัยในคน (ชุดกลาง)",
+                  "deliverable": "กรรมการและเลขานุการ คณะกรรมการจริยธรรมการวิจัยในคน (ชุดกลาง)",
+                  "references": "คำสั่งมหาวิทยาลัยศรีปทุม ที่ คส.มศป.450/2565 ลงวันที่ 31 ต.ค. 2565\n\nแหล่งอ้างอิง: ภาระงาน.ผอ.ศวป.docx / table 1 row 4\n\nข้อมูล ณ วันที่: 19 มกราคม 2569",
+                  "frequency": 0,
+                  "volume": 0,
+                  "hoursPerUnit": 0,
+                  "dutyWeight": 1,
+                  "roleWeight": 1,
+                  "responsibilityPercent": 100,
+                  "ownerPersonId": "P005",
+                  "ownerPositionId": "",
+                  "supervisorPersonId": "P001",
+                  "approverPersonId": "P001",
+                  "months": [
+                        "aug",
+                        "sep",
+                        "oct",
+                        "nov",
+                        "dec",
+                        "jan",
+                        "feb",
+                        "mar",
+                        "apr",
+                        "may",
+                        "jun",
+                        "jul"
+                  ],
+                  "status": "approved",
+                  "isFtbCounted": true,
+                  "attachmentsNote": "ภาระงาน.ผอ.ศวป.docx / table 1 row 4",
+                  "sourceStatus": "Active",
+                  "sourceReference": "ภาระงาน.ผอ.ศวป.docx / table 1 row 4",
+                  "sourceActiveMonthCount": 12,
+                  "ftbInputNote": "กรอก volume/frequency/hours หรือ score เพื่อให้สูตรคำนวณ FTB",
+                  "createdAt": "2026-07-08T01:26:42.000Z",
+                  "updatedAt": "2026-07-08T01:26:42.000Z"
+            },
+            {
+                  "id": "JD004",
+                  "academicYear": "2568",
+                  "orgId": "ORG001",
+                  "category": "ส่วนงานวิจัย",
+                  "subcategory": "ลำดับ 4",
+                  "title": "บริหารจัดการวารสาร ศรีปทุมปริทัศน์ จำนวน 2 เล่ม",
+                  "detail": "บริหารจัดการวารสาร\nศรีปทุมปริทัศน์\nจำนวน 2 เล่ม\n1) วารสารศรีปทุมปริทัศน์ ฉบับมนุษยศาสตร์และสังคมศาสตร์\n2) วารสารศรีปทุมปริทัศน์\nฉบับวิทยาศาสตร์และเทคโนโลยี\n- การพิจารณากลั่นกรองบทความในคณะกองบรรณาธิการฯ\n-การพิจารณาและประเมินบทความผ่านระบบ ThaiJo\n\nช่วงเวลาดำเนินการ:\nตลอดปีการศึกษา\n1.ฉบับมนุษย์ฯ ตีพิมพ์เผยแพร่ปีละ 2 ฉบับ\n(มิ.ย. และ ธ.ค.)\n2.ฉบับวิทย์ฯ ตีพิมพ์เผยแพร่ปีละ 1 ฉบับ\n(ธ.ค.)\n\nบทบาทตามเอกสาร:\n1.บรรณาธิการ ฉบับมนุษยศาสตร์และสังคมศาสตร์\n2.ผู้ดูแลระบบ ThaiJo ของ TCI ในการบริหารจัดการวารสารฯ จำนวน 2 ฉบับ",
+                  "deliverable": "1.บรรณาธิการ ฉบับมนุษยศาสตร์และสังคมศาสตร์\n2.ผู้ดูแลระบบ ThaiJo ของ TCI ในการบริหารจัดการวารสารฯ จำนวน 2 ฉบับ",
+                  "references": "คำสั่งมหาวิทยาลัยศรีปทุม ที่ คส.มศป. 036/2567 ลงวันที่ 13 ก.พ. 2567\n\nแหล่งอ้างอิง: ภาระงาน.ผอ.ศวป.docx / table 1 row 5\n\nข้อมูล ณ วันที่: 19 มกราคม 2569",
+                  "frequency": 0,
+                  "volume": 0,
+                  "hoursPerUnit": 0,
+                  "dutyWeight": 1,
+                  "roleWeight": 1,
+                  "responsibilityPercent": 100,
+                  "ownerPersonId": "P006",
+                  "ownerPositionId": "",
+                  "supervisorPersonId": "P001",
+                  "approverPersonId": "P001",
+                  "months": [
+                        "aug",
+                        "sep",
+                        "oct",
+                        "nov",
+                        "dec",
+                        "jan",
+                        "feb",
+                        "mar",
+                        "apr",
+                        "may",
+                        "jun",
+                        "jul"
+                  ],
+                  "status": "approved",
+                  "isFtbCounted": true,
+                  "attachmentsNote": "ภาระงาน.ผอ.ศวป.docx / table 1 row 5",
+                  "sourceStatus": "Active",
+                  "sourceReference": "ภาระงาน.ผอ.ศวป.docx / table 1 row 5",
+                  "sourceActiveMonthCount": 12,
+                  "ftbInputNote": "กรอก volume/frequency/hours หรือ score เพื่อให้สูตรคำนวณ FTB",
+                  "createdAt": "2026-07-08T01:26:42.000Z",
+                  "updatedAt": "2026-07-08T01:26:42.000Z"
+            },
+            {
+                  "id": "JD005",
+                  "academicYear": "2568",
+                  "orgId": "ORG001",
+                  "category": "ส่วนงานวิจัย",
+                  "subcategory": "ลำดับ 5",
+                  "title": "บริหารจัดการงานประชุมวิชาการระดับชาติและระดับนานาชาติ (SPUCON)",
+                  "detail": "บริหารจัดการงานประชุมวิชาการระดับชาติและระดับนานาชาติ (SPUCON)\n\nช่วงเวลาดำเนินการ:\nช่วงเดือน เม.ย.-พ.ย.\nเม.ย. - จัดทำคำสั่งแต่งตั้งคณะกรรมการฯ และขออนุมัติงบประมาณ\nพ.ค. – ประชุมคณะกรรมการฯ และเตรียมความพร้อมทุกฝ่าย\nมิ.ย. - เปิดรับบทความ\nก.ค. - ก.ย. -พิจารณาและประเมินบทความ\nต.ค. - เตรียมความพร้อม ซักซ้อม และจัดงานช่วงปลายเดือน\n\nบทบาทตามเอกสาร:\n1.กรรมการและเลขานุการ\nคณะกรรมการจัดงานการประชุมวิชาการฯ\n2.ผู้ดูแบบระบบการส่งบทความ และระบบการพิจารณาและประเมินบทความที่นำเสนอในงานประชุมวิชาการฯ",
+                  "deliverable": "1.กรรมการและเลขานุการ\nคณะกรรมการจัดงานการประชุมวิชาการฯ\n2.ผู้ดูแบบระบบการส่งบทความ และระบบการพิจารณาและประเมินบทความที่นำเสนอในงานประชุมวิชาการฯ",
+                  "references": "คำสั่งมหาวิทยาลัยศรีปทุม ที่ คส.มศป.159/2568 ลงวันที่ 27 พ.ค. 2568\n\nแหล่งอ้างอิง: ภาระงาน.ผอ.ศวป.docx / table 1 row 6\n\nข้อมูล ณ วันที่: 19 มกราคม 2569",
+                  "frequency": 0,
+                  "volume": 0,
+                  "hoursPerUnit": 0,
+                  "dutyWeight": 1,
+                  "roleWeight": 1,
+                  "responsibilityPercent": 100,
+                  "ownerPersonId": "P007",
+                  "ownerPositionId": "",
+                  "supervisorPersonId": "P001",
+                  "approverPersonId": "P001",
+                  "months": [
+                        "aug",
+                        "sep",
+                        "oct",
+                        "nov",
+                        "apr",
+                        "may",
+                        "jun",
+                        "jul"
+                  ],
+                  "status": "approved",
+                  "isFtbCounted": true,
+                  "attachmentsNote": "ภาระงาน.ผอ.ศวป.docx / table 1 row 6",
+                  "sourceStatus": "Active",
+                  "sourceReference": "ภาระงาน.ผอ.ศวป.docx / table 1 row 6",
+                  "sourceActiveMonthCount": 8,
+                  "ftbInputNote": "กรอก volume/frequency/hours หรือ score เพื่อให้สูตรคำนวณ FTB",
+                  "createdAt": "2026-07-08T01:26:42.000Z",
+                  "updatedAt": "2026-07-08T01:26:42.000Z"
+            },
+            {
+                  "id": "JD006",
+                  "academicYear": "2568",
+                  "orgId": "ORG001",
+                  "category": "ส่วนงานวิจัย",
+                  "subcategory": "ลำดับ 6",
+                  "title": "งานการพิจารณาและเบิกจ่ายเงินรางวัลสำหรับการตีพิมพ์บทความวิจัยในฐานข้อมูล Scopus",
+                  "detail": "งานการพิจารณาและเบิกจ่ายเงินรางวัลสำหรับการตีพิมพ์บทความวิจัยในฐานข้อมูล Scopus\n-กระบวนการพิจารณาบทความใน Scopus และเสนอขออนุมัติ\n\nช่วงเวลาดำเนินการ:\nตลอดปีการศึกษา\n\nบทบาทตามเอกสาร:\nผอ. ศวป. เป็นผู้กลั่นกรองและตรวจสอบบทความที่ตีพิมพ์ในฐานข้อมูล Scopus ก่อนเสนอเพื่อขออนุมัติ",
+                  "deliverable": "ผอ. ศวป. เป็นผู้กลั่นกรองและตรวจสอบบทความที่ตีพิมพ์ในฐานข้อมูล Scopus ก่อนเสนอเพื่อขออนุมัติ",
+                  "references": "แหล่งอ้างอิง: ภาระงาน.ผอ.ศวป.docx / table 1 row 7\n\nข้อมูล ณ วันที่: 19 มกราคม 2569",
+                  "frequency": 0,
+                  "volume": 0,
+                  "hoursPerUnit": 0,
+                  "dutyWeight": 1,
+                  "roleWeight": 1,
+                  "responsibilityPercent": 100,
+                  "ownerPersonId": "P008",
+                  "ownerPositionId": "",
+                  "supervisorPersonId": "P001",
+                  "approverPersonId": "P001",
+                  "months": [
+                        "aug",
+                        "sep",
+                        "oct",
+                        "nov",
+                        "dec",
+                        "jan",
+                        "feb",
+                        "mar",
+                        "apr",
+                        "may",
+                        "jun",
+                        "jul"
+                  ],
+                  "status": "approved",
+                  "isFtbCounted": true,
+                  "attachmentsNote": "ภาระงาน.ผอ.ศวป.docx / table 1 row 7",
+                  "sourceStatus": "Active",
+                  "sourceReference": "ภาระงาน.ผอ.ศวป.docx / table 1 row 7",
+                  "sourceActiveMonthCount": 12,
+                  "ftbInputNote": "กรอก volume/frequency/hours หรือ score เพื่อให้สูตรคำนวณ FTB",
+                  "createdAt": "2026-07-08T01:26:42.000Z",
+                  "updatedAt": "2026-07-08T01:26:42.000Z"
+            },
+            {
+                  "id": "JD007",
+                  "academicYear": "2568",
+                  "orgId": "ORG001",
+                  "category": "ส่วนงานวิจัย",
+                  "subcategory": "ลำดับ 7",
+                  "title": "จัดฝึกอบรมเพื่อพัฒนาศักยภาพด้านการวิจัยให้กับคณาจารย์ จำนวน 4 โครงการ/ปี 1) โครงการอบรมตามแผน จำนวน 2 โครงการ",
+                  "detail": "จัดฝึกอบรมเพื่อพัฒนาศักยภาพด้านการวิจัยให้กับคณาจารย์\nจำนวน 4 โครงการ/ปี\n1) โครงการอบรมตามแผน จำนวน 2 โครงการ\n2) โครงการอบรมแบบมีรายได้ จำนวน 2 โครงการ\n\nช่วงเวลาดำเนินการ:\nมี.ค.-ก.ค.\n\nบทบาทตามเอกสาร:\nผอ. ศวป. / หัวหน้างานวิจัย\nเป็นผู้เขียนโครงการและเสนอขออนุมัติ",
+                  "deliverable": "ผอ. ศวป. / หัวหน้างานวิจัย\nเป็นผู้เขียนโครงการและเสนอขออนุมัติ",
+                  "references": "แหล่งอ้างอิง: ภาระงาน.ผอ.ศวป.docx / table 1 row 8\n\nข้อมูล ณ วันที่: 19 มกราคม 2569",
+                  "frequency": 0,
+                  "volume": 0,
+                  "hoursPerUnit": 0,
+                  "dutyWeight": 1,
+                  "roleWeight": 1,
+                  "responsibilityPercent": 100,
+                  "ownerPersonId": "P007",
+                  "ownerPositionId": "",
+                  "supervisorPersonId": "P003",
+                  "approverPersonId": "P003",
+                  "months": [
+                        "mar",
+                        "apr",
+                        "may",
+                        "jun",
+                        "jul"
+                  ],
+                  "status": "approved",
+                  "isFtbCounted": true,
+                  "attachmentsNote": "ภาระงาน.ผอ.ศวป.docx / table 1 row 8",
+                  "sourceStatus": "Active",
+                  "sourceReference": "ภาระงาน.ผอ.ศวป.docx / table 1 row 8",
+                  "sourceActiveMonthCount": 5,
+                  "ftbInputNote": "กรอก volume/frequency/hours หรือ score เพื่อให้สูตรคำนวณ FTB",
+                  "createdAt": "2026-07-08T01:26:42.000Z",
+                  "updatedAt": "2026-07-08T01:26:42.000Z"
+            },
+            {
+                  "id": "JD008",
+                  "academicYear": "2568",
+                  "orgId": "ORG001",
+                  "category": "ส่วนงานวิจัย",
+                  "subcategory": "ลำดับ 8",
+                  "title": "งานเครือข่ายด้านการวิจัย จำนวน 3 เครือข่าย 1) เครือข่ายวิจัยประชาชื่น (PRN) (จำนวน 17 สถาบัน)",
+                  "detail": "งานเครือข่ายด้านการวิจัย\nจำนวน 3 เครือข่าย\n1) เครือข่ายวิจัยประชาชื่น (PRN) (จำนวน 17 สถาบัน)\n2.เครือข่ายวารสาร วิชาการด้านมนุษยศาสตร์และสังคมศาสตร์ (JSH)\n(จำนวน 22 วารสาร)\n3.เครือข่ายการใช้โปรแกรมอักขราวิสุทธิ์\n\nช่วงเวลาดำเนินการ:\nตลอดปีการศึกษา\n\nบทบาทตามเอกสาร:\nผอ. ศวป. / หัวหน้างานวิจัย\nปัจจุบัน ผอ.ศวป. เป็น\n1) รองประธานเครือข่ายวิจัยประชาชื่น (PRN)\n2) ประธานเครือข่ายวารสารวิชาการด้านมนุษยศาสตร์และสังคมศาสตร์ (JSH)\n3) Admin ระบบอักขราวิสุทธิ์ของมหาวิทยาลัย",
+                  "deliverable": "ผอ. ศวป. / หัวหน้างานวิจัย\nปัจจุบัน ผอ.ศวป. เป็น\n1) รองประธานเครือข่ายวิจัยประชาชื่น (PRN)\n2) ประธานเครือข่ายวารสารวิชาการด้านมนุษยศาสตร์และสังคมศาสตร์ (JSH)\n3) Admin ระบบอักขราวิสุทธิ์ของมหาวิทยาลัย",
+                  "references": "แหล่งอ้างอิง: ภาระงาน.ผอ.ศวป.docx / table 1 row 9\n\nข้อมูล ณ วันที่: 19 มกราคม 2569",
+                  "frequency": 0,
+                  "volume": 0,
+                  "hoursPerUnit": 0,
+                  "dutyWeight": 1,
+                  "roleWeight": 1,
+                  "responsibilityPercent": 100,
+                  "ownerPersonId": "P007",
+                  "ownerPositionId": "",
+                  "supervisorPersonId": "P003",
+                  "approverPersonId": "P003",
+                  "months": [
+                        "aug",
+                        "sep",
+                        "oct",
+                        "nov",
+                        "dec",
+                        "jan",
+                        "feb",
+                        "mar",
+                        "apr",
+                        "may",
+                        "jun",
+                        "jul"
+                  ],
+                  "status": "approved",
+                  "isFtbCounted": true,
+                  "attachmentsNote": "ภาระงาน.ผอ.ศวป.docx / table 1 row 9",
+                  "sourceStatus": "Active",
+                  "sourceReference": "ภาระงาน.ผอ.ศวป.docx / table 1 row 9",
+                  "sourceActiveMonthCount": 12,
+                  "ftbInputNote": "กรอก volume/frequency/hours หรือ score เพื่อให้สูตรคำนวณ FTB",
+                  "createdAt": "2026-07-08T01:26:42.000Z",
+                  "updatedAt": "2026-07-08T01:26:42.000Z"
+            },
+            {
+                  "id": "JD009",
+                  "academicYear": "2568",
+                  "orgId": "ORG001",
+                  "category": "ส่วนงานวิจัย",
+                  "subcategory": "ลำดับ 9",
+                  "title": "งานกลั่นกรองบทความที่จะต้องไปนำเสนอหรือเผยแพร่ในการประชุมวิชาการระดับชาติ/นานาชาติ หรือนิทรรศการระดับชาติ/นานาชาติ",
+                  "detail": "งานกลั่นกรองบทความที่จะต้องไปนำเสนอหรือเผยแพร่ในการประชุมวิชาการระดับชาติ/นานาชาติ หรือนิทรรศการระดับชาติ/นานาชาติ\n\nช่วงเวลาดำเนินการ:\nตลอดปีการศึกษา\n\nบทบาทตามเอกสาร:\nผอ. ศวป. / หัวหน้างานวิจัย",
+                  "deliverable": "ผอ. ศวป. / หัวหน้างานวิจัย",
+                  "references": "กลั่นกรองตามประกาศ ม.ฯ เรื่อง หลักเกณฑ์การให้ทุนสนับสนุนบุคลากรไปเผยแพร่ผลงานทางวิชาการ ลงวันที่ 15 มีนาคม 2545\n\nแหล่งอ้างอิง: ภาระงาน.ผอ.ศวป.docx / table 1 row 10\n\nข้อมูล ณ วันที่: 19 มกราคม 2569",
+                  "frequency": 0,
+                  "volume": 0,
+                  "hoursPerUnit": 0,
+                  "dutyWeight": 1,
+                  "roleWeight": 1,
+                  "responsibilityPercent": 100,
+                  "ownerPersonId": "P007",
+                  "ownerPositionId": "",
+                  "supervisorPersonId": "P009",
+                  "approverPersonId": "P009",
+                  "months": [
+                        "aug",
+                        "sep",
+                        "oct",
+                        "nov",
+                        "dec",
+                        "jan",
+                        "feb",
+                        "mar",
+                        "apr",
+                        "may",
+                        "jun",
+                        "jul"
+                  ],
+                  "status": "approved",
+                  "isFtbCounted": true,
+                  "attachmentsNote": "ภาระงาน.ผอ.ศวป.docx / table 1 row 10",
+                  "sourceStatus": "Active",
+                  "sourceReference": "ภาระงาน.ผอ.ศวป.docx / table 1 row 10",
+                  "sourceActiveMonthCount": 12,
+                  "ftbInputNote": "กรอก volume/frequency/hours หรือ score เพื่อให้สูตรคำนวณ FTB",
+                  "createdAt": "2026-07-08T01:26:42.000Z",
+                  "updatedAt": "2026-07-08T01:26:42.000Z"
+            },
+            {
+                  "id": "JD010",
+                  "academicYear": "2568",
+                  "orgId": "ORG001",
+                  "category": "ส่วนงานวิจัย",
+                  "subcategory": "ลำดับ 10",
+                  "title": "งานเก็บรวบรวมข้อมูลวิจัยจากาหน่วยงานภายนอก หรือบุคคลภายนอก ที่มาขอเก็บข้อมูลวิจัยในมหาวิทยาลัย",
+                  "detail": "งานเก็บรวบรวมข้อมูลวิจัยจากาหน่วยงานภายนอก หรือบุคคลภายนอก ที่มาขอเก็บข้อมูลวิจัยในมหาวิทยาลัย\n\nช่วงเวลาดำเนินการ:\nตลอดปีการศึกษา\n\nบทบาทตามเอกสาร:\nผอ. ศวป. / หัวหน้างานวิจัย",
+                  "deliverable": "ผอ. ศวป. / หัวหน้างานวิจัย",
+                  "references": "แหล่งอ้างอิง: ภาระงาน.ผอ.ศวป.docx / table 1 row 11\n\nข้อมูล ณ วันที่: 19 มกราคม 2569",
+                  "frequency": 0,
+                  "volume": 0,
+                  "hoursPerUnit": 0,
+                  "dutyWeight": 1,
+                  "roleWeight": 1,
+                  "responsibilityPercent": 100,
+                  "ownerPersonId": "P007",
+                  "ownerPositionId": "",
+                  "supervisorPersonId": "P001",
+                  "approverPersonId": "P001",
+                  "months": [
+                        "aug",
+                        "sep",
+                        "oct",
+                        "nov",
+                        "dec",
+                        "jan",
+                        "feb",
+                        "mar",
+                        "apr",
+                        "may",
+                        "jun",
+                        "jul"
+                  ],
+                  "status": "approved",
+                  "isFtbCounted": true,
+                  "attachmentsNote": "ภาระงาน.ผอ.ศวป.docx / table 1 row 11",
+                  "sourceStatus": "Active",
+                  "sourceReference": "ภาระงาน.ผอ.ศวป.docx / table 1 row 11",
+                  "sourceActiveMonthCount": 12,
+                  "ftbInputNote": "กรอก volume/frequency/hours หรือ score เพื่อให้สูตรคำนวณ FTB",
+                  "createdAt": "2026-07-08T01:26:42.000Z",
+                  "updatedAt": "2026-07-08T01:26:42.000Z"
+            },
+            {
+                  "id": "JD011",
+                  "academicYear": "2568",
+                  "orgId": "ORG001",
+                  "category": "ส่วนงานวิจัย",
+                  "subcategory": "ลำดับ 11",
+                  "title": "งานสนับสนุนข้อมูลด้านการวิจัยและนวัตกรรมให้กับมหาวิทยาลัย เช่น 1) ข้อมูลที่ต้องเปิดเผยต่อสาธารณชน (สป.อว.) 2) การจัดกลุ่มสถาบันอุดมศึกษา",
+                  "detail": "งานสนับสนุนข้อมูลด้านการวิจัยและนวัตกรรมให้กับมหาวิทยาลัย เช่น\n1) ข้อมูลที่ต้องเปิดเผยต่อสาธารณชน (สป.อว.)\n2) การจัดกลุ่มสถาบันอุดมศึกษา\n3) การจัดอันดับของ THE สำหรับ SDGs\n4) การประเมินของ CHE (ชื่อเดิม: u-Multirank)\n\nช่วงเวลาดำเนินการ:\nตลอดปีการศึกษา\n\nบทบาทตามเอกสาร:\nผอ. ศวป. / หัวหน้างานวิจัย",
+                  "deliverable": "ผอ. ศวป. / หัวหน้างานวิจัย",
+                  "references": "แหล่งอ้างอิง: ภาระงาน.ผอ.ศวป.docx / table 1 row 12\n\nข้อมูล ณ วันที่: 19 มกราคม 2569",
+                  "frequency": 0,
+                  "volume": 0,
+                  "hoursPerUnit": 0,
+                  "dutyWeight": 1,
+                  "roleWeight": 1,
+                  "responsibilityPercent": 100,
+                  "ownerPersonId": "P007",
+                  "ownerPositionId": "",
+                  "supervisorPersonId": "P001",
+                  "approverPersonId": "P001",
+                  "months": [
+                        "aug",
+                        "sep",
+                        "oct",
+                        "nov",
+                        "dec",
+                        "jan",
+                        "feb",
+                        "mar",
+                        "apr",
+                        "may",
+                        "jun",
+                        "jul"
+                  ],
+                  "status": "approved",
+                  "isFtbCounted": true,
+                  "attachmentsNote": "ภาระงาน.ผอ.ศวป.docx / table 1 row 12",
+                  "sourceStatus": "Active",
+                  "sourceReference": "ภาระงาน.ผอ.ศวป.docx / table 1 row 12",
+                  "sourceActiveMonthCount": 12,
+                  "ftbInputNote": "กรอก volume/frequency/hours หรือ score เพื่อให้สูตรคำนวณ FTB",
+                  "createdAt": "2026-07-08T01:26:42.000Z",
+                  "updatedAt": "2026-07-08T01:26:42.000Z"
+            },
+            {
+                  "id": "JD012",
+                  "academicYear": "2568",
+                  "orgId": "ORG001",
+                  "category": "ส่วนงานประกันคุณภาพการศึกษา",
+                  "subcategory": "ลำดับ 1",
+                  "title": "การประกันคุณภาพการศึกษาภายใน",
+                  "detail": "การประกันคุณภาพการศึกษาภายใน\n-ระดับหลักสูตร\n-ระดับคณะ\n-ระดับสถาบัน\nหมายเหตุ\nระดับหลักสูตร: ใช้ระบบ SPU: AUN-QA version 4\nระดับคณะและระดับสถาบัน: ใช้ระบบ IQA ของ สป.อว.\n\nช่วงเวลาดำเนินการ:\nส.ค. – ประเมินคุณภาพฯ ระดับหลักสูตร\nก.ย. - ประเมินคุณภาพฯ ระดับคณะ\nต.ค. - ประเมินคุณภาพฯ ระดับสถาบัน\nพ.ย. – Submit ระบบ CHE-QA Online ของ สป.อว.\nธ.ค. – จัดทำ Improvement Plan\nม.ค. (ปีต่อไป) – นำผลประเมินคุณภาพฯ เข้าสภามหาวิทยาลัยเพื่อขอความเห็นชอบ\nก.พ.-พ.ค. (ปีต่อไป)- จัดทำ Template รายงานประเมิน ปรับปรุงคู่มือฯ และระบบที่เกี่ยวข้อง\nมิ.ย.-ก.ค. (ปีต่อไป) - เตรียมความพร้อมการประเมินปีต่อไป\nหมายเหตุ\nประชุมคณะกรรมการประกันคุณภาพการศึกษาภายใน 2 ครั้ง/ปี\n(ก่อนและหลังการประเมินคุณภาพการศึกษาภายใน)\n\nบทบาทตามเอกสาร:\nเลขานุการ คณะกรรมการประกันคุณภาพการศึกษา",
+                  "deliverable": "เลขานุการ คณะกรรมการประกันคุณภาพการศึกษา",
+                  "references": "1. คำสั่งมหาวิทยาลัยศรีปทุม ที่ คส.มศป.183/2566 ลงวันที่ 15 พ.ค. 2566\n2. หัวหน้างานประกันคุณภาพการศึกษา (อ.ชิดใจ) ดูแล 3 ระบบที่เกี่ยวข้อง ได้แก่ 1) ระบบติดตาม SAR 2) ระบบ CHE-QA Online 3) ระบบ e-SAR\n\nแหล่งอ้างอิง: ภาระงาน.ผอ.ศวป.docx / table 2 row 2\n\nข้อมูล ณ วันที่: 19 มกราคม 2569",
+                  "frequency": 0,
+                  "volume": 0,
+                  "hoursPerUnit": 0,
+                  "dutyWeight": 1,
+                  "roleWeight": 1,
+                  "responsibilityPercent": 100,
+                  "ownerPersonId": "P008",
+                  "ownerPositionId": "",
+                  "supervisorPersonId": "P001",
+                  "approverPersonId": "P001",
+                  "months": [
+                        "aug",
+                        "sep",
+                        "oct",
+                        "nov",
+                        "dec",
+                        "jan",
+                        "feb",
+                        "mar",
+                        "apr",
+                        "may",
+                        "jun",
+                        "jul"
+                  ],
+                  "status": "approved",
+                  "isFtbCounted": true,
+                  "attachmentsNote": "ภาระงาน.ผอ.ศวป.docx / table 2 row 2",
+                  "sourceStatus": "Active",
+                  "sourceReference": "ภาระงาน.ผอ.ศวป.docx / table 2 row 2",
+                  "sourceActiveMonthCount": 12,
+                  "ftbInputNote": "กรอก volume/frequency/hours หรือ score เพื่อให้สูตรคำนวณ FTB",
+                  "createdAt": "2026-07-08T01:26:42.000Z",
+                  "updatedAt": "2026-07-08T01:26:42.000Z"
+            },
+            {
+                  "id": "JD013",
+                  "academicYear": "2568",
+                  "orgId": "ORG001",
+                  "category": "ส่วนงานประกันคุณภาพการศึกษา",
+                  "subcategory": "ลำดับ 2",
+                  "title": "การประกันคุณภาพการศึกษาภายนอก",
+                  "detail": "การประกันคุณภาพการศึกษาภายนอก\n-งานการจัดเก็บข้อมูลตามตัวชี้วัดการประเมินคุณภาพการศึกษาภายนอก\n-งานการเตรียมความพร้อมสำหรับการประเมินคุณภาพการศึกษาภายนอก\n\nช่วงเวลาดำเนินการ:\n1.ตลอดปีการศึกษา\n(เก็บรวบรวมข้อมูลตามตัวชี้วัดของการประเมินคุณภาพการศึกษาภายนอก)\n2.ดำเนินการประเมินคุณภาพการศึกษาภายนอก ทุก 5 ปี\n\nบทบาทตามเอกสาร:\nผอ. ศวป. / หัวหน้างานประกันคุณภาพการศึกษา เป็นผู้ดำเนินการ",
+                  "deliverable": "ผอ. ศวป. / หัวหน้างานประกันคุณภาพการศึกษา เป็นผู้ดำเนินการ",
+                  "references": "แหล่งอ้างอิง: ภาระงาน.ผอ.ศวป.docx / table 2 row 3\n\nข้อมูล ณ วันที่: 19 มกราคม 2569",
+                  "frequency": 0,
+                  "volume": 0,
+                  "hoursPerUnit": 0,
+                  "dutyWeight": 1,
+                  "roleWeight": 1,
+                  "responsibilityPercent": 100,
+                  "ownerPersonId": "P008",
+                  "ownerPositionId": "",
+                  "supervisorPersonId": "P001",
+                  "approverPersonId": "P001",
+                  "months": [
+                        "aug",
+                        "sep",
+                        "oct",
+                        "nov",
+                        "dec",
+                        "jan",
+                        "feb",
+                        "mar",
+                        "apr",
+                        "may",
+                        "jun",
+                        "jul"
+                  ],
+                  "status": "approved",
+                  "isFtbCounted": true,
+                  "attachmentsNote": "ภาระงาน.ผอ.ศวป.docx / table 2 row 3",
+                  "sourceStatus": "Active",
+                  "sourceReference": "ภาระงาน.ผอ.ศวป.docx / table 2 row 3",
+                  "sourceActiveMonthCount": 12,
+                  "ftbInputNote": "กรอก volume/frequency/hours หรือ score เพื่อให้สูตรคำนวณ FTB",
+                  "createdAt": "2026-07-08T01:26:42.000Z",
+                  "updatedAt": "2026-07-08T01:26:42.000Z"
+            },
+            {
+                  "id": "JD014",
+                  "academicYear": "2568",
+                  "orgId": "ORG001",
+                  "category": "ส่วนงานประกันคุณภาพการศึกษา",
+                  "subcategory": "ลำดับ 3",
+                  "title": "อบรมผู้ประเมินคุณภาพการศึกษาภายใน",
+                  "detail": "อบรมผู้ประเมินคุณภาพการศึกษาภายใน\n\nช่วงเวลาดำเนินการ:\nมิ.ย.-ก.ค.\nก่อนเริ่มปีการศึกษาใหม่\n\nบทบาทตามเอกสาร:\nผอ. ศวป. / หัวหน้างานประกันคุณภาพการศึกษา เป็นผู้ดำเนินการ",
+                  "deliverable": "ผอ. ศวป. / หัวหน้างานประกันคุณภาพการศึกษา เป็นผู้ดำเนินการ",
+                  "references": "แหล่งอ้างอิง: ภาระงาน.ผอ.ศวป.docx / table 2 row 4\n\nข้อมูล ณ วันที่: 19 มกราคม 2569",
+                  "frequency": 0,
+                  "volume": 0,
+                  "hoursPerUnit": 0,
+                  "dutyWeight": 1,
+                  "roleWeight": 1,
+                  "responsibilityPercent": 100,
+                  "ownerPersonId": "P008",
+                  "ownerPositionId": "",
+                  "supervisorPersonId": "P001",
+                  "approverPersonId": "P001",
+                  "months": [
+                        "jun",
+                        "jul"
+                  ],
+                  "status": "approved",
+                  "isFtbCounted": true,
+                  "attachmentsNote": "ภาระงาน.ผอ.ศวป.docx / table 2 row 4",
+                  "sourceStatus": "Active",
+                  "sourceReference": "ภาระงาน.ผอ.ศวป.docx / table 2 row 4",
+                  "sourceActiveMonthCount": 2,
+                  "ftbInputNote": "กรอก volume/frequency/hours หรือ score เพื่อให้สูตรคำนวณ FTB",
+                  "createdAt": "2026-07-08T01:26:42.000Z",
+                  "updatedAt": "2026-07-08T01:26:42.000Z"
+            },
+            {
+                  "id": "JD015",
+                  "academicYear": "2568",
+                  "orgId": "ORG001",
+                  "category": "ส่วนงานประกันคุณภาพการศึกษา",
+                  "subcategory": "ลำดับ 4",
+                  "title": "งานส่งเสริมและสนับสนุนข้อมูลที่เกี่ยวข้องกับการประกันคุณภาพการศึกษา",
+                  "detail": "งานส่งเสริมและสนับสนุนข้อมูลที่เกี่ยวข้องกับการประกันคุณภาพการศึกษา\n-ข้อมูลที่ต้องเปิดเผยต่อสาธารณชน (สป.อว.)\n-ข้อมูลตามตัวชี้วัดของ SDGs Impact Ranking\nฯลฯ\n\nช่วงเวลาดำเนินการ:\nตลอดปีการศึกษา\n\nบทบาทตามเอกสาร:\nผอ. ศวป. / หัวหน้างานประกันคุณภาพการศึกษา เป็นผู้ดำเนินการ",
+                  "deliverable": "ผอ. ศวป. / หัวหน้างานประกันคุณภาพการศึกษา เป็นผู้ดำเนินการ",
+                  "references": "แหล่งอ้างอิง: ภาระงาน.ผอ.ศวป.docx / table 2 row 5\n\nข้อมูล ณ วันที่: 19 มกราคม 2569",
+                  "frequency": 0,
+                  "volume": 0,
+                  "hoursPerUnit": 0,
+                  "dutyWeight": 1,
+                  "roleWeight": 1,
+                  "responsibilityPercent": 100,
+                  "ownerPersonId": "P004",
+                  "ownerPositionId": "",
+                  "supervisorPersonId": "P003",
+                  "approverPersonId": "P003",
+                  "months": [
+                        "aug",
+                        "sep",
+                        "oct",
+                        "nov",
+                        "dec",
+                        "jan",
+                        "feb",
+                        "mar",
+                        "apr",
+                        "may",
+                        "jun",
+                        "jul"
+                  ],
+                  "status": "approved",
+                  "isFtbCounted": true,
+                  "attachmentsNote": "ภาระงาน.ผอ.ศวป.docx / table 2 row 5",
+                  "sourceStatus": "Active",
+                  "sourceReference": "ภาระงาน.ผอ.ศวป.docx / table 2 row 5",
+                  "sourceActiveMonthCount": 12,
+                  "ftbInputNote": "กรอก volume/frequency/hours หรือ score เพื่อให้สูตรคำนวณ FTB",
+                  "createdAt": "2026-07-08T01:26:42.000Z",
+                  "updatedAt": "2026-07-08T01:26:42.000Z"
+            },
+            {
+                  "id": "JD016",
+                  "academicYear": "2568",
+                  "orgId": "ORG001",
+                  "category": "งานอื่น ๆ ที่ได้รับมอบหมาย",
+                  "subcategory": "ลำดับ 1",
+                  "title": "การพิจารณาตำแหน่งทางวิชาการ ของมหาวิทยาลัยศรีปทุม",
+                  "detail": "การพิจารณาตำแหน่งทางวิชาการ ของมหาวิทยาลัยศรีปทุม\n\nช่วงเวลาดำเนินการ:\nตลอดปีการศึกษา\n\nบทบาทตามเอกสาร:\nเลขานุการ คณะกรรมการพิจารณาตำแหน่งทางวิชาการ ประจำมหาวิทยาลัยศรีปทุม (กพว.)",
+                  "deliverable": "เลขานุการ คณะกรรมการพิจารณาตำแหน่งทางวิชาการ ประจำมหาวิทยาลัยศรีปทุม (กพว.)",
+                  "references": "คำสั่งมหาวิทยาลัยศรีปทุม ที่ คส.\nมศป.303/2563 ลงวันที่ 4 สิงหาคม 2563\n\nแหล่งอ้างอิง: ภาระงาน.ผอ.ศวป.docx / table 3 row 2\n\nข้อมูล ณ วันที่: 19 มกราคม 2569",
+                  "frequency": 0,
+                  "volume": 0,
+                  "hoursPerUnit": 0,
+                  "dutyWeight": 1,
+                  "roleWeight": 1,
+                  "responsibilityPercent": 100,
+                  "ownerPersonId": "",
+                  "ownerPositionId": "",
+                  "supervisorPersonId": "P011",
+                  "approverPersonId": "P011",
+                  "months": [
+                        "aug",
+                        "sep",
+                        "oct",
+                        "nov",
+                        "dec",
+                        "jan",
+                        "feb",
+                        "mar",
+                        "apr",
+                        "may",
+                        "jun",
+                        "jul"
+                  ],
+                  "status": "approved",
+                  "isFtbCounted": true,
+                  "attachmentsNote": "ภาระงาน.ผอ.ศวป.docx / table 3 row 2",
+                  "sourceStatus": "Active",
+                  "sourceReference": "ภาระงาน.ผอ.ศวป.docx / table 3 row 2",
+                  "sourceActiveMonthCount": 12,
+                  "ftbInputNote": "กรอก volume/frequency/hours หรือ score เพื่อให้สูตรคำนวณ FTB",
+                  "createdAt": "2026-07-08T01:26:42.000Z",
+                  "updatedAt": "2026-07-08T01:26:42.000Z"
+            },
+            {
+                  "id": "JD017",
+                  "academicYear": "2568",
+                  "orgId": "ORG001",
+                  "category": "งานอื่น ๆ ที่ได้รับมอบหมาย",
+                  "subcategory": "ลำดับ 2",
+                  "title": "การกลั่นกรองผลงานทางวิชาการ สำหรับผู้ขอดำรงตำแหน่งทางวิชาการและ ผู้ขอรักษาตำแหน่งทางวิชาการ ของมหาวิทยาลัย ศรีปทุม",
+                  "detail": "การกลั่นกรองผลงานทางวิชาการ สำหรับผู้ขอดำรงตำแหน่งทางวิชาการและ\nผู้ขอรักษาตำแหน่งทางวิชาการ ของมหาวิทยาลัย\nศรีปทุม\n\nช่วงเวลาดำเนินการ:\nตลอดปีการศึกษา\n\nบทบาทตามเอกสาร:\nประธาน คณะกรรมการกลั่นกรองผลงานทางวิชาการ สำหรับผู้ขอดำรงตำแหน่งทางวิชาการและ\nผู้ขอรักษาตำแหน่งทางวิชาการ ของมหาวิทยาลัยศรีปทุม",
+                  "deliverable": "ประธาน คณะกรรมการกลั่นกรองผลงานทางวิชาการ สำหรับผู้ขอดำรงตำแหน่งทางวิชาการและ\nผู้ขอรักษาตำแหน่งทางวิชาการ ของมหาวิทยาลัยศรีปทุม",
+                  "references": "คำสั่งมหาวิทยาลัยศรีปทุม ที่ คส.\nมศป. 548/2567 ลงวันที่ 28 พ.ย.2567\n\nแหล่งอ้างอิง: ภาระงาน.ผอ.ศวป.docx / table 3 row 3\n\nข้อมูล ณ วันที่: 19 มกราคม 2569",
+                  "frequency": 0,
+                  "volume": 0,
+                  "hoursPerUnit": 0,
+                  "dutyWeight": 1,
+                  "roleWeight": 1,
+                  "responsibilityPercent": 100,
+                  "ownerPersonId": "",
+                  "ownerPositionId": "",
+                  "supervisorPersonId": "P011",
+                  "approverPersonId": "P011",
+                  "months": [
+                        "aug",
+                        "sep",
+                        "oct",
+                        "nov",
+                        "dec",
+                        "jan",
+                        "feb",
+                        "mar",
+                        "apr",
+                        "may",
+                        "jun",
+                        "jul"
+                  ],
+                  "status": "approved",
+                  "isFtbCounted": true,
+                  "attachmentsNote": "ภาระงาน.ผอ.ศวป.docx / table 3 row 3",
+                  "sourceStatus": "Active",
+                  "sourceReference": "ภาระงาน.ผอ.ศวป.docx / table 3 row 3",
+                  "sourceActiveMonthCount": 12,
+                  "ftbInputNote": "กรอก volume/frequency/hours หรือ score เพื่อให้สูตรคำนวณ FTB",
+                  "createdAt": "2026-07-08T01:26:42.000Z",
+                  "updatedAt": "2026-07-08T01:26:42.000Z"
+            },
+            {
+                  "id": "JD018",
+                  "academicYear": "2568",
+                  "orgId": "ORG001",
+                  "category": "งานอื่น ๆ ที่ได้รับมอบหมาย",
+                  "subcategory": "ลำดับ 3",
+                  "title": "การจัดกลุ่มสถาบันอุดมศึกษา",
+                  "detail": "การจัดกลุ่มสถาบันอุดมศึกษา\n-รวบรวมและนำเข้าข้อมูลตามตัวชี้วัดของการจัดกลุ่มฯ ในระบบ UCLAS\n\nช่วงเวลาดำเนินการ:\nสิ้นปีการศึกษา ประมาณเดือน ส.ค.-ต.ค.\n(ปีการศึกษาละ 1 ครั้ง)\n(รวบรวมข้อมูล และนำเข้าระบบฯ)\n\nบทบาทตามเอกสาร:\nผู้รับผิดชอบสำหรับเข้าใช้งานระบบการประเมินตนเองและการจัดกลุ่มสถาบันอุดมศึกษา\nเชิงยุทธศาสตร์ (Thai University Strategic Classification and Self-Assessment System-UCLAS)\nhttps://reinventing.mhesi.go.th/uclas",
+                  "deliverable": "ผู้รับผิดชอบสำหรับเข้าใช้งานระบบการประเมินตนเองและการจัดกลุ่มสถาบันอุดมศึกษา\nเชิงยุทธศาสตร์ (Thai University Strategic Classification and Self-Assessment System-UCLAS)\nhttps://reinventing.mhesi.go.th/uclas",
+                  "references": "หนังสือที่ มศป.0402/2435 ลงวันที่ 21 พ.ค.2564\n\nแหล่งอ้างอิง: ภาระงาน.ผอ.ศวป.docx / table 3 row 4\n\nข้อมูล ณ วันที่: 19 มกราคม 2569",
+                  "frequency": 0,
+                  "volume": 0,
+                  "hoursPerUnit": 0,
+                  "dutyWeight": 1,
+                  "roleWeight": 1,
+                  "responsibilityPercent": 100,
+                  "ownerPersonId": "P008",
+                  "ownerPositionId": "",
+                  "supervisorPersonId": "P003",
+                  "approverPersonId": "P003",
+                  "months": [
+                        "aug",
+                        "sep",
+                        "oct"
+                  ],
+                  "status": "approved",
+                  "isFtbCounted": true,
+                  "attachmentsNote": "ภาระงาน.ผอ.ศวป.docx / table 3 row 4",
+                  "sourceStatus": "Active",
+                  "sourceReference": "ภาระงาน.ผอ.ศวป.docx / table 3 row 4",
+                  "sourceActiveMonthCount": 3,
+                  "ftbInputNote": "กรอก volume/frequency/hours หรือ score เพื่อให้สูตรคำนวณ FTB",
+                  "createdAt": "2026-07-08T01:26:42.000Z",
+                  "updatedAt": "2026-07-08T01:26:42.000Z"
+            },
+            {
+                  "id": "JD019",
+                  "academicYear": "2568",
+                  "orgId": "ORG001",
+                  "category": "งานอื่น ๆ ที่ได้รับมอบหมาย",
+                  "subcategory": "ลำดับ 4",
+                  "title": "การเปิดเผยข้อมูลของสถาบันอุดมศึกษาตามกฎกระทรวงกำหนัดหลักเกณฑ์ วิธีการ และระยะเวลาการเปิดเผยข้อมูลการอุดมศึกษา พ.ศ. 2566",
+                  "detail": "การเปิดเผยข้อมูลของสถาบันอุดมศึกษาตามกฎกระทรวงกำหนัดหลักเกณฑ์ วิธีการ และระยะเวลาการเปิดเผยข้อมูลการอุดมศึกษา พ.ศ. 2566\n\nช่วงเวลาดำเนินการ:\n1.ตลอดปีการศึกษา ให้บันทึกข้อมูลทุกครั้งที่มีการเปลี่ยนแปลง\n2.ยืนยันข้อมูลในระบบฯ\nปีการศึกษาละ 1 ครั้ง\n(ม.ค.)\n\nบทบาทตามเอกสาร:\nผู้รับผิดชอบ การรายงานผลการเปิดเผยข้อมูลของสถาบันอุดมศึกษา ในระบบรายงานผลการดำเนินงานฯ\nhttps://gur.mhesi.go.th",
+                  "deliverable": "ผู้รับผิดชอบ การรายงานผลการเปิดเผยข้อมูลของสถาบันอุดมศึกษา ในระบบรายงานผลการดำเนินงานฯ\nhttps://gur.mhesi.go.th",
+                  "references": "แบบแจ้งรายชื่อผู้รับผิดชอบการรายงานผลการเปิดเผยข้อมูลของสถาบันอุดมศึกษา ตามกฎกระทรวงฯ\n\nแหล่งอ้างอิง: ภาระงาน.ผอ.ศวป.docx / table 3 row 5\n\nข้อมูล ณ วันที่: 19 มกราคม 2569",
+                  "frequency": 0,
+                  "volume": 0,
+                  "hoursPerUnit": 0,
+                  "dutyWeight": 1,
+                  "roleWeight": 1,
+                  "responsibilityPercent": 100,
+                  "ownerPersonId": "P002",
+                  "ownerPositionId": "",
+                  "supervisorPersonId": "P001",
+                  "approverPersonId": "P001",
+                  "months": [
+                        "aug",
+                        "sep",
+                        "oct",
+                        "nov",
+                        "dec",
+                        "jan"
+                  ],
+                  "status": "approved",
+                  "isFtbCounted": true,
+                  "attachmentsNote": "ภาระงาน.ผอ.ศวป.docx / table 3 row 5",
+                  "sourceStatus": "Active",
+                  "sourceReference": "ภาระงาน.ผอ.ศวป.docx / table 3 row 5",
+                  "sourceActiveMonthCount": 6,
+                  "ftbInputNote": "กรอก volume/frequency/hours หรือ score เพื่อให้สูตรคำนวณ FTB",
+                  "createdAt": "2026-07-08T01:26:42.000Z",
+                  "updatedAt": "2026-07-08T01:26:42.000Z"
+            },
+            {
+                  "id": "JD020",
+                  "academicYear": "2568",
+                  "orgId": "ORG001",
+                  "category": "งานอื่น ๆ ที่ได้รับมอบหมาย",
+                  "subcategory": "ลำดับ 5",
+                  "title": "การขับเคลื่อน THE Impact Rankings for SDGs",
+                  "detail": "การขับเคลื่อน THE Impact Rankings for SDGs\n\nช่วงเวลาดำเนินการ:\n1.ตลอดปีการศึกษา เก็บรวบรวมข้อมูล\n2.ส่งข้อมูลในระบบ THE Portal ปีละ 1 ครั้ง (ประมาณ ต.ค.-พ.ย.)\n\nบทบาทตามเอกสาร:\nกรรมการและเลขานุการ คณะขับเคลื่อน THE Impact Rankings",
+                  "deliverable": "กรรมการและเลขานุการ คณะขับเคลื่อน THE Impact Rankings",
+                  "references": "คำสั่งมหาวิทยาลัยศรีปทุม ที่ คส. มศป. 192/2566 ลงวันที่ 25 พ.ค. 2566\n\nแหล่งอ้างอิง: ภาระงาน.ผอ.ศวป.docx / table 3 row 6\n\nข้อมูล ณ วันที่: 19 มกราคม 2569",
+                  "frequency": 0,
+                  "volume": 0,
+                  "hoursPerUnit": 0,
+                  "dutyWeight": 1,
+                  "roleWeight": 1,
+                  "responsibilityPercent": 100,
+                  "ownerPersonId": "P008",
+                  "ownerPositionId": "",
+                  "supervisorPersonId": "P003",
+                  "approverPersonId": "P003",
+                  "months": [
+                        "sep",
+                        "oct",
+                        "nov"
+                  ],
+                  "status": "approved",
+                  "isFtbCounted": true,
+                  "attachmentsNote": "ภาระงาน.ผอ.ศวป.docx / table 3 row 6",
+                  "sourceStatus": "Active",
+                  "sourceReference": "ภาระงาน.ผอ.ศวป.docx / table 3 row 6",
+                  "sourceActiveMonthCount": 3,
+                  "ftbInputNote": "กรอก volume/frequency/hours หรือ score เพื่อให้สูตรคำนวณ FTB",
+                  "createdAt": "2026-07-08T01:26:42.000Z",
+                  "updatedAt": "2026-07-08T01:26:42.000Z"
+            },
+            {
+                  "id": "JD021",
+                  "academicYear": "2568",
+                  "orgId": "ORG001",
+                  "category": "งานอื่น ๆ ที่ได้รับมอบหมาย",
+                  "subcategory": "ลำดับ 6",
+                  "title": "อาจารย์ประจำหลักสูตรศึกษาศาสตร มหาบัณฑิต และปรัชญาดุษฎีบัณฑิต สาขาวิชาการบริหารการศึกษา",
+                  "detail": "อาจารย์ประจำหลักสูตรศึกษาศาสตร มหาบัณฑิต และปรัชญาดุษฎีบัณฑิต สาขาวิชาการบริหารการศึกษา\n-ที่ปรึกษาวิทยานิพนธ์และงานสอน\n\nช่วงเวลาดำเนินการ:\n1.ภาคการศึกษาที่ 1 สอนวิชา EDA81767\n2.ภาคการศึกษาฤดูร้อน สอนวิชา EDA71367\n\nบทบาทตามเอกสาร:\nอาจารย์ผู้สอนใน 2 รายวิชา ได้แก่ EDA81767 วิธีวิทยาการวิจัยและสถิติขั้นสูงทางการบริหารการศึกษา (ปริญญาเอก) และ EDA71367 การประกันคุณภาพเพื่อพัฒนาการเรียนรู้อย่างทั่วถึง (ปริญญาโท)",
+                  "deliverable": "อาจารย์ผู้สอนใน 2 รายวิชา ได้แก่ EDA81767 วิธีวิทยาการวิจัยและสถิติขั้นสูงทางการบริหารการศึกษา (ปริญญาเอก) และ EDA71367 การประกันคุณภาพเพื่อพัฒนาการเรียนรู้อย่างทั่วถึง (ปริญญาโท)",
+                  "references": "แหล่งอ้างอิง: ภาระงาน.ผอ.ศวป.docx / table 3 row 7\n\nข้อมูล ณ วันที่: 19 มกราคม 2569",
+                  "frequency": 0,
+                  "volume": 0,
+                  "hoursPerUnit": 0,
+                  "dutyWeight": 1,
+                  "roleWeight": 1,
+                  "responsibilityPercent": 100,
+                  "ownerPersonId": "P013",
+                  "ownerPositionId": "",
+                  "supervisorPersonId": "P012",
+                  "approverPersonId": "P012",
+                  "months": [
+                        "aug",
+                        "sep",
+                        "oct",
+                        "nov",
+                        "mar",
+                        "apr",
+                        "may"
+                  ],
+                  "status": "approved",
+                  "isFtbCounted": true,
+                  "attachmentsNote": "ภาระงาน.ผอ.ศวป.docx / table 3 row 7",
+                  "sourceStatus": "Active",
+                  "sourceReference": "ภาระงาน.ผอ.ศวป.docx / table 3 row 7",
+                  "sourceActiveMonthCount": 7,
+                  "ftbInputNote": "กรอก volume/frequency/hours หรือ score เพื่อให้สูตรคำนวณ FTB",
+                  "createdAt": "2026-07-08T01:26:42.000Z",
+                  "updatedAt": "2026-07-08T01:26:42.000Z"
+            }
+      ],
+      "auditLogs": [
+            {
+                  "id": "LOG0001",
+                  "tableName": "system",
+                  "recordId": "initial_import",
+                  "actionType": "create",
+                  "oldValue": "",
+                  "newValue": "Imported from ภาระงาน.ผอ.ศวป.docx and ตารางการดำเนินงาน.docx",
+                  "changedBy": "system",
+                  "changedAt": "2026-07-08T01:15:00.000Z",
+                  "reason": "initial conversion",
+                  "ipAddress": "local",
+                  "deviceInfo": "browser"
+            }
+      ]
+};
+
+    let state = loadState();
+    let currentTab = "dashboard";
+    let editing = { org: null, position: null, person: null, duty: null };
+    let selectedOrgId = state.orgs[0]?.id || "";
+    let collapsedOrgs = new Set();
+
+    function loadState() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return structuredClone(seed);
+      try {
+        const data = JSON.parse(raw);
+        return { ...structuredClone(seed), ...data, settings: { ...seed.settings, ...(data.settings || {}) } };
+      } catch {
+        return structuredClone(seed);
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function uid(prefix) {
+      return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+    }
+
+    function nowIso() { return new Date().toISOString(); }
+
+    function logChange(tableName, recordId, actionType, oldValue, newValue, reason = "") {
+      state.auditLogs.unshift({
+        id: uid("log"),
+        tableName,
+        recordId,
+        actionType,
+        oldValue: JSON.stringify(oldValue || ""),
+        newValue: JSON.stringify(newValue || ""),
+        changedBy: roleLabel(state.settings.role),
+        changedAt: nowIso(),
+        reason,
+        ipAddress: "local",
+        deviceInfo: navigator.userAgent.slice(0, 80)
+      });
+    }
+
+    function roleLabel(role) {
+      return (roles.find(([id]) => id === role) || roles[0])[1];
+    }
+
+    function orgName(id) {
+      if (!id) return "-";
+      return (state.orgs.find(o => o.id === id) || {}).name || "-";
+    }
+
+    function positionName(id) {
+      if (!id) return "-";
+      return (state.positions.find(p => p.id === id) || {}).name || "-";
+    }
+
+    function personName(id) {
+      if (!id) return "-";
+      return (state.persons.find(p => p.id === id) || {}).name || "-";
+    }
+
+    function formatNumber(value, digits = 2) {
+      return Number(value || 0).toLocaleString("th-TH", { maximumFractionDigits: digits });
+    }
+
+    function calcDutyFtb(duty) {
+      if (!duty.isFtbCounted) return 0;
+      const std = Number(state.settings.standardHours || 1760);
+      const percent = Number(duty.responsibilityPercent || 100) / 100;
+      const volume = Number(duty.volume || 0);
+      const hoursPerUnit = Number(duty.hoursPerUnit || 0);
+      const frequency = Number(duty.frequency || 0);
+      if (volume > 0 && hoursPerUnit > 0 && frequency > 0) {
+        const ftb = (volume * hoursPerUnit * frequency * Number(duty.dutyWeight || 1) * Number(duty.roleWeight || 1) * percent) / std;
+        return Number.isFinite(ftb) ? ftb : 0;
+      }
+      const activeMonthCount = Number(duty.sourceActiveMonthCount || (duty.months || []).length || 0);
+      if (activeMonthCount > 0) {
+        const ftb = (activeMonthCount / 12) * Number(duty.dutyWeight || 1) * Number(duty.roleWeight || 1) * percent;
+        return Number.isFinite(ftb) ? ftb : 0;
+      }
+      const ftb = 0;
+      return Number.isFinite(ftb) ? ftb : 0;
+    }
+
+    function availableFtb(person) {
+      return Number(person.fteRatio || 0);
+    }
+
+    function accessibleOrgIds() {
+      if (state.settings.role === "admin" || state.settings.role === "hr" || state.settings.orgScope === "all") {
+        return state.orgs.map(o => o.id);
+      }
+      const root = state.settings.orgScope;
+      const ids = new Set([root]);
+      let changed = true;
+      while (changed) {
+        changed = false;
+        state.orgs.forEach(o => {
+          if (ids.has(o.parentId) && !ids.has(o.id)) {
+            ids.add(o.id);
+            changed = true;
+          }
+        });
+      }
+      return [...ids];
+    }
+
+    function scopedDuties() {
+      const ids = new Set(accessibleOrgIds());
+      return state.duties.filter(d => ids.has(d.orgId));
+    }
+
+    function canEdit(recordOrgId) {
+      if (state.settings.role === "viewer") return false;
+      if (["admin", "hr"].includes(state.settings.role)) return true;
+      return accessibleOrgIds().includes(recordOrgId);
+    }
+
+    function statusBadge(status) {
+      const map = {
+        draft: ["ร่าง", ""],
+        review: ["รอตรวจสอบ", "blue"],
+        approved: ["อนุมัติ", "ok"],
+        active: ["ใช้งาน", "ok"],
+        locked: ["ล็อก", "warn"],
+        returned: ["ส่งกลับ", "danger"]
+      };
+      const [text, cls] = map[status] || [status || "-", ""];
+      return `<span class="badge ${cls}">${text}</span>`;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[m]));
+    }
+
+    function options(items, selected, placeholder = "เลือก") {
+      return `<option value="">${placeholder}</option>` + items.map(([id, label]) => `<option value="${escapeHtml(id)}" ${id === selected ? "selected" : ""}>${escapeHtml(label)}</option>`).join("");
+    }
+
+    function orgOptions(selected, includeAll = false) {
+      const rows = state.orgs.map(o => [o.id, o.name]);
+      return (includeAll ? `<option value="all" ${selected === "all" ? "selected" : ""}>ทุกหน่วยงาน</option>` : "") + options(rows, selected, "เลือกหน่วยงาน");
+    }
+
+    function personOptions(selected) {
+      return options(state.persons.map(p => [p.id, `${p.name} (${positionName(p.positionId)})`]), selected, "เลือกบุคลากร");
+    }
+
+    function positionOptions(selected) {
+      return options(state.positions.map(p => [p.id, `${p.name} - ${orgName(p.orgId)}`]), selected, "เลือกตำแหน่ง");
+    }
+
+    function renderShell() {
+      document.getElementById("nav").innerHTML = tabs.map(([id, icon, label]) =>
+        `<button class="${currentTab === id ? "active" : ""}" onclick="switchTab('${id}')"><span>${icon}</span><span>${label}</span></button>`
+      ).join("");
+
+      document.getElementById("roleSelect").innerHTML = roles.map(([id, label]) =>
+        `<option value="${id}" ${state.settings.role === id ? "selected" : ""}>${label}</option>`
+      ).join("");
+      document.getElementById("scopeSelect").innerHTML = orgOptions(state.settings.orgScope, true);
+      const tab = tabs.find(([id]) => id === currentTab) || tabs[0];
+      document.getElementById("pageTitle").textContent = tab[2];
+      document.getElementById("pageSubtitle").textContent = tab[3];
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      editing = { org: null, position: null, person: null, duty: null };
+      render();
+    }
+
+    function render() {
+      renderShell();
+      const map = {
+        dashboard: renderDashboard,
+        workloads: renderWorkloads,
+        orgs: renderOrgs,
+        positions: renderPositions,
+        persons: renderPersons,
+        chart: renderChart,
+        reports: renderReports,
+        audit: renderAudit
+      };
+      document.getElementById("view").innerHTML = (map[currentTab] || renderDashboard)();
+      wireCurrentView();
+    }
+
+    function renderDashboard() {
+      const duties = scopedDuties();
+      const personIds = new Set(state.persons.filter(p => accessibleOrgIds().includes(p.orgId)).map(p => p.id));
+      const positions = state.positions.filter(p => accessibleOrgIds().includes(p.orgId));
+      const totalFtb = duties.reduce((sum, d) => sum + calcDutyFtb(d), 0);
+      const available = state.persons.filter(p => personIds.has(p.id)).reduce((sum, p) => sum + availableFtb(p), 0);
+      const utilization = available ? totalFtb / available : 0;
+      const unowned = duties.filter(d => !d.ownerPersonId).length;
+      const missingMonths = duties.filter(d => !d.months || d.months.length === 0).length;
+      const overloaded = personUtilization().filter(p => p.utilization > 1.2);
+      const missingFtbInputs = duties.filter(d => !(Number(d.volume || 0) > 0 && Number(d.hoursPerUnit || 0) > 0 && Number(d.frequency || 0) > 0)).length;
+      return `
+        <div class="toolbar">
+          <div class="field"><label>ปีการศึกษา</label><input id="settingYear" value="${escapeHtml(state.settings.academicYear)}"></div>
+          <div class="field"><label>ชั่วโมงมาตรฐานต่อ FTB</label><input id="settingStd" type="number" min="1" value="${escapeHtml(state.settings.standardHours)}"></div>
+          <div class="field"><label>ค้นหาภาระงาน</label><input id="dashboardSearch" placeholder="ชื่อภาระงาน หน่วยงาน หรือผู้รับผิดชอบ"></div>
+          <div class="actions span-2">
+            <button class="primary" onclick="saveSettings()">บันทึกค่า</button>
+            <button onclick="exportDutiesCsv()">ส่งออก CSV</button>
+            <button onclick="downloadSnapshot()">Snapshot JSON</button>
+          </div>
+        </div>
+
+        ${state.sourceMetadata ? `<div class="notice">ใช้ข้อมูลจริงจาก ${escapeHtml(state.sourceMetadata.sourceFile)} (${escapeHtml(state.sourceMetadata.generatedAt || "-")}) รวม ${duties.length} JD, ${state.persons.length} บุคลากร, ${state.orgs.length} หน่วยงาน; รายการที่ยังไม่มี volume/frequency/hours ${missingFtbInputs} รายการจะแสดง FTB ประมาณจากจำนวนเดือนที่ดำเนินการจริง</div>` : ""}
+
+        <div class="kpis">
+          <div class="kpi"><span>หน่วยงานในขอบเขต</span><strong>${accessibleOrgIds().length}</strong><small>${state.orgs.length} หน่วยงานทั้งหมด</small></div>
+          <div class="kpi"><span>ตำแหน่ง / บุคลากร</span><strong>${positions.length} / ${personIds.size}</strong><small>อ้างอิงโครงสร้างปัจจุบัน</small></div>
+          <div class="kpi"><span>ภาระงาน / FTB รวม</span><strong>${duties.length} / ${formatNumber(totalFtb)}</strong><small>สูตรชั่วโมงหรือ proxy จาก active month</small></div>
+          <div class="kpi"><span>Utilization</span><strong>${formatNumber(utilization * 100, 1)}%</strong><small>Available FTB ${formatNumber(available)}</small></div>
+          <div class="kpi"><span>หน่วยงานเกินกำลัง</span><strong>${orgUtilization().filter(o => o.utilization > 1.2).length}</strong><small>มากกว่า 120%</small></div>
+          <div class="kpi"><span>คนที่ utilization สูง</span><strong>${overloaded.length}</strong><small>มากกว่า 120%</small></div>
+          <div class="kpi"><span>งานไม่มีเจ้าภาพ</span><strong>${unowned}</strong><small>ต้องกำหนดผู้รับผิดชอบหลัก</small></div>
+          <div class="kpi"><span>งานยังไม่ผูกเดือน</span><strong>${missingMonths}</strong><small>ต้องเลือก ส.ค.-ก.ค.</small></div>
+        </div>
+
+        <div class="grid cols-2">
+          <section class="panel">
+            <div class="panel-head"><h3>FTB รายหน่วยงาน</h3><span class="badge blue">${formatNumber(totalFtb)} FTB</span></div>
+            <div class="panel-body">${renderOrgBars()}</div>
+          </section>
+          <section class="panel">
+            <div class="panel-head"><h3>Utilization รายบุคคล</h3><span class="badge warn">เฝ้าระวัง > 120%</span></div>
+            <div class="panel-body">${renderPersonTable(personUtilization().slice(0, 6))}</div>
+          </section>
+        </div>
+
+        <section class="panel">
+          <div class="panel-head"><h3>Heatmap ภาระงานรายเดือน ส.ค.-ก.ค.</h3><span class="badge">${state.settings.academicYear}</span></div>
+          <div class="panel-body">${renderHeatmap()}</div>
+        </section>
+      `;
+    }
+
+    function saveSettings() {
+      const old = { ...state.settings };
+      state.settings.academicYear = document.getElementById("settingYear").value.trim() || state.settings.academicYear;
+      state.settings.standardHours = Number(document.getElementById("settingStd").value || 1760);
+      logChange("settings", "global", "update", old, state.settings, "บันทึกค่าระบบ");
+      saveState();
+      render();
+    }
+
+    function orgUtilization() {
+      return state.orgs.map(org => {
+        const orgIds = new Set([org.id, ...descendantOrgIds(org.id)]);
+        const duties = state.duties.filter(d => orgIds.has(d.orgId));
+        const ftb = duties.reduce((sum, d) => sum + calcDutyFtb(d), 0);
+        const persons = state.persons.filter(p => orgIds.has(p.orgId));
+        const available = persons.reduce((sum, p) => sum + availableFtb(p), 0);
+        return { org, ftb, available, utilization: available ? ftb / available : 0 };
+      }).filter(row => accessibleOrgIds().includes(row.org.id));
+    }
+
+    function personUtilization() {
+      return state.persons
+        .filter(p => accessibleOrgIds().includes(p.orgId))
+        .map(person => {
+          const ftb = personAssignedFtb(person.id);
+          const available = availableFtb(person);
+          return { person, ftb, available, utilization: available ? ftb / available : 0 };
+        })
+        .sort((a, b) => b.utilization - a.utilization);
+    }
+
+    function personAssignedFtb(personId) {
+      const responsibilities = state.responsibilities || [];
+      return state.duties.reduce((sum, duty) => {
+        const dutyResponsibilities = responsibilities.filter(r => r.dutyId === duty.id);
+        const personResponsibilities = dutyResponsibilities.filter(r => r.personId === personId);
+        if (!personResponsibilities.length) {
+          return duty.ownerPersonId === personId ? sum + calcDutyFtb(duty) : sum;
+        }
+        const ownerCount = Math.max(1, dutyResponsibilities.filter(r => r.roleType === "Owner").length);
+        const dutyFtb = calcDutyFtb(duty);
+        const assigned = personResponsibilities.reduce((subtotal, responsibility) => {
+          const percent = responsibility.responsibilityPercent == null
+            ? (responsibility.roleType === "Owner" ? 1 / ownerCount : 1)
+            : Number(responsibility.responsibilityPercent || 0) / 100;
+          return subtotal + dutyFtb * Number(responsibility.roleWeight || 1) * percent;
+        }, 0);
+        return sum + assigned;
+      }, 0);
+    }
+
+    function descendantOrgIds(orgId) {
+      const ids = [];
+      let changed = true;
+      while (changed) {
+        changed = false;
+        state.orgs.forEach(o => {
+          if ((o.parentId === orgId || ids.includes(o.parentId)) && !ids.includes(o.id)) {
+            ids.push(o.id);
+            changed = true;
+          }
+        });
+      }
+      return ids;
+    }
+
+    function renderOrgBars() {
+      const rows = orgUtilization().sort((a, b) => b.ftb - a.ftb);
+      const max = Math.max(...rows.map(r => r.ftb), .1);
+      if (!rows.length) return `<div class="empty">ยังไม่มีข้อมูลหน่วยงาน</div>`;
+      return `<div class="bars">${rows.map(r => `
+        <div class="bar-row">
+          <strong>${escapeHtml(r.org.name)}</strong>
+          <div class="bar-track"><div class="bar-fill" style="width:${Math.min(100, r.ftb / max * 100)}%"></div></div>
+          <span>${formatNumber(r.ftb)}</span>
+        </div>
+      `).join("")}</div>`;
+    }
+
+    function renderPersonTable(rows) {
+      if (!rows.length) return `<div class="empty">ยังไม่มีข้อมูลบุคลากร</div>`;
+      return `<div class="table-wrap"><table>
+        <thead><tr><th>บุคลากร</th><th>หน่วยงาน</th><th>FTB</th><th>Available</th><th>Utilization</th></tr></thead>
+        <tbody>${rows.map(r => `
+          <tr>
+            <td>${escapeHtml(r.person.name)}</td>
+            <td>${escapeHtml(orgName(r.person.orgId))}</td>
+            <td>${formatNumber(r.ftb)}</td>
+            <td>${formatNumber(r.available)}</td>
+            <td>${utilBadge(r.utilization)}</td>
+          </tr>
+        `).join("")}</tbody>
+      </table></div>`;
+    }
+
+    function utilBadge(value) {
+      const cls = value > 1.5 ? "danger" : value > 1.2 ? "warn" : value >= .7 ? "ok" : "blue";
+      return `<span class="badge ${cls}">${formatNumber(value * 100, 1)}%</span>`;
+    }
+
+    function renderHeatmap() {
+      const rows = orgUtilization();
+      const header = `<div class="heat-head">หน่วยงาน</div>` + MONTHS.map(([, label]) => `<div class="heat-head">${label}</div>`).join("");
+      const body = rows.map(({ org }) => {
+        const orgIds = new Set([org.id, ...descendantOrgIds(org.id)]);
+        return `<div class="heat-label">${escapeHtml(org.name)}</div>` + MONTHS.map(([key]) => {
+          const ftb = state.duties.filter(d => orgIds.has(d.orgId) && d.months.includes(key)).reduce((sum, d) => sum + calcDutyFtb(d), 0);
+          const level = ftb > .45 ? 4 : ftb > .25 ? 3 : ftb > .1 ? 2 : ftb > 0 ? 1 : 0;
+          return `<div class="heat-cell" data-level="${level}">${ftb ? formatNumber(ftb) : "-"}</div>`;
+        }).join("");
+      }).join("");
+      return `<div class="heatmap">${header}${body}</div>`;
+    }
+
+    function renderOrgs() {
+      const row = editing.org ? state.orgs.find(o => o.id === editing.org) : {};
+      return `
+        <div class="grid cols-2">
+          <section class="panel">
+            <div class="panel-head"><h3>${editing.org ? "แก้ไขหน่วยงาน" : "เพิ่มหน่วยงาน"}</h3><button onclick="clearEdit('org')">ล้างฟอร์ม</button></div>
+            <div class="panel-body">
+              <form id="orgForm" class="form-grid">
+                <input type="hidden" name="id" value="${escapeHtml(row?.id || "")}">
+                <div class="field"><label>ชื่อหน่วยงาน</label><input name="name" required value="${escapeHtml(row?.name || "")}"></div>
+                <div class="field"><label>ประเภท</label><input name="type" value="${escapeHtml(row?.type || "")}" placeholder="คณะ สำนัก ศูนย์ ฝ่าย งาน"></div>
+                <div class="field"><label>หน่วยงานแม่</label><select name="parentId">${orgOptions(row?.parentId || "")}</select></div>
+                <div class="field"><label>ผู้บริหารกำกับดูแล</label><select name="managerPersonId">${personOptions(row?.managerPersonId || "")}</select></div>
+                <div class="field"><label>สถานะ</label><select name="active"><option value="true" ${row?.active !== false ? "selected" : ""}>ใช้งาน</option><option value="false" ${row?.active === false ? "selected" : ""}>ปิดใช้งาน</option></select></div>
+                <div class="span-2 status-line"><button class="primary" type="submit">บันทึกหน่วยงาน</button></div>
+              </form>
+            </div>
+          </section>
+          <section class="panel">
+            <div class="panel-head"><h3>รายการหน่วยงาน</h3><span class="badge">${state.orgs.length} รายการ</span></div>
+            <div class="panel-body">${renderOrgTable()}</div>
+          </section>
+        </div>`;
+    }
+
+    function renderOrgTable() {
+      return `<div class="table-wrap"><table>
+        <thead><tr><th>หน่วยงาน</th><th>ประเภท</th><th>หน่วยงานแม่</th><th>ผู้บริหาร</th><th>สถานะ</th><th></th></tr></thead>
+        <tbody>${state.orgs.map(o => `
+          <tr>
+            <td>${escapeHtml(o.name)}</td>
+            <td>${escapeHtml(o.type || "-")}</td>
+            <td>${escapeHtml(orgName(o.parentId))}</td>
+            <td>${escapeHtml(personName(o.managerPersonId))}</td>
+            <td><span class="badge ${o.active ? "ok" : "warn"}">${o.active ? "ใช้งาน" : "ปิด"}</span></td>
+            <td><div class="row-actions"><button onclick="editRecord('org','${o.id}')">แก้ไข</button><button class="danger" onclick="removeRecord('orgs','${o.id}')">ลบ</button></div></td>
+          </tr>`).join("")}</tbody>
+      </table></div>`;
+    }
+
+    function renderPositions() {
+      const row = editing.position ? state.positions.find(p => p.id === editing.position) : {};
+      return `
+        <div class="grid cols-2">
+          <section class="panel">
+            <div class="panel-head"><h3>${editing.position ? "แก้ไขตำแหน่ง" : "เพิ่มตำแหน่ง"}</h3><button onclick="clearEdit('position')">ล้างฟอร์ม</button></div>
+            <div class="panel-body">
+              <form id="positionForm" class="form-grid">
+                <input type="hidden" name="id" value="${escapeHtml(row?.id || "")}">
+                <div class="field span-2"><label>ชื่อตำแหน่ง</label><input name="name" required value="${escapeHtml(row?.name || "")}"></div>
+                <div class="field"><label>หน่วยงาน</label><select name="orgId" required>${orgOptions(row?.orgId || "")}</select></div>
+                <div class="field"><label>ระดับตำแหน่ง</label><input name="level" value="${escapeHtml(row?.level || "")}"></div>
+                <div class="field"><label>ประเภทตำแหน่ง</label><input name="type" value="${escapeHtml(row?.type || "")}" placeholder="ประจำ ว่าง รักษาการ"></div>
+                <div class="field"><label>ตำแหน่งผู้บังคับบัญชา</label><select name="supervisorPositionId">${positionOptions(row?.supervisorPositionId || "")}</select></div>
+                <div class="field"><label>สถานะ</label><select name="active"><option value="true" ${row?.active !== false ? "selected" : ""}>ใช้งาน</option><option value="false" ${row?.active === false ? "selected" : ""}>ปิดใช้งาน</option></select></div>
+                <div class="span-2 status-line"><button class="primary" type="submit">บันทึกตำแหน่ง</button></div>
+              </form>
+            </div>
+          </section>
+          <section class="panel">
+            <div class="panel-head"><h3>รายการตำแหน่ง</h3><span class="badge">${state.positions.length} รายการ</span></div>
+            <div class="panel-body">${renderPositionTable()}</div>
+          </section>
+        </div>`;
+    }
+
+    function renderPositionTable() {
+      return `<div class="table-wrap"><table>
+        <thead><tr><th>ตำแหน่ง</th><th>หน่วยงาน</th><th>ระดับ</th><th>ประเภท</th><th>ผู้บังคับบัญชา</th><th></th></tr></thead>
+        <tbody>${state.positions.map(p => `
+          <tr>
+            <td>${escapeHtml(p.name)}</td>
+            <td>${escapeHtml(orgName(p.orgId))}</td>
+            <td>${escapeHtml(p.level || "-")}</td>
+            <td>${escapeHtml(p.type || "-")}</td>
+            <td>${escapeHtml(positionName(p.supervisorPositionId))}</td>
+            <td><div class="row-actions"><button onclick="editRecord('position','${p.id}')">แก้ไข</button><button class="danger" onclick="removeRecord('positions','${p.id}')">ลบ</button></div></td>
+          </tr>`).join("")}</tbody>
+      </table></div>`;
+    }
+
+    function renderPersons() {
+      const row = editing.person ? state.persons.find(p => p.id === editing.person) : {};
+      return `
+        <div class="grid cols-2">
+          <section class="panel">
+            <div class="panel-head"><h3>${editing.person ? "แก้ไขบุคลากร" : "เพิ่มบุคลากร"}</h3><button onclick="clearEdit('person')">ล้างฟอร์ม</button></div>
+            <div class="panel-body">
+              <form id="personForm" class="form-grid">
+                <input type="hidden" name="id" value="${escapeHtml(row?.id || "")}">
+                <div class="field"><label>รหัสบุคลากร</label><input name="code" value="${escapeHtml(row?.code || "")}"></div>
+                <div class="field"><label>ชื่อ-นามสกุล</label><input name="name" required value="${escapeHtml(row?.name || "")}"></div>
+                <div class="field"><label>อีเมล</label><input name="email" type="email" value="${escapeHtml(row?.email || "")}"></div>
+                <div class="field"><label>หน่วยงาน</label><select name="orgId" required>${orgOptions(row?.orgId || "")}</select></div>
+                <div class="field"><label>ตำแหน่งหลัก</label><select name="positionId" required>${positionOptions(row?.positionId || "")}</select></div>
+                <div class="field"><label>FTE Ratio</label><input name="fteRatio" type="number" step="0.1" min="0" value="${escapeHtml(row?.fteRatio ?? 1)}"></div>
+                <div class="field"><label>สถานะ</label><select name="status"><option value="active" ${row?.status !== "inactive" ? "selected" : ""}>ปฏิบัติงาน</option><option value="inactive" ${row?.status === "inactive" ? "selected" : ""}>ไม่ปฏิบัติงาน</option></select></div>
+                <div class="span-2 status-line"><button class="primary" type="submit">บันทึกบุคลากร</button></div>
+              </form>
+            </div>
+          </section>
+          <section class="panel">
+            <div class="panel-head"><h3>รายการบุคลากร</h3><span class="badge">${state.persons.length} รายการ</span></div>
+            <div class="panel-body">${renderPersonListTable()}</div>
+          </section>
+        </div>`;
+    }
+
+    function renderPersonListTable() {
+      return `<div class="table-wrap"><table>
+        <thead><tr><th>บุคลากร</th><th>หน่วยงาน</th><th>ตำแหน่ง</th><th>FTE</th><th>สถานะ</th><th></th></tr></thead>
+        <tbody>${state.persons.map(p => `
+          <tr>
+            <td><strong>${escapeHtml(p.name)}</strong><br><small>${escapeHtml(p.code || "-")} ${escapeHtml(p.email || "")}</small></td>
+            <td>${escapeHtml(orgName(p.orgId))}</td>
+            <td>${escapeHtml(positionName(p.positionId))}</td>
+            <td>${formatNumber(p.fteRatio)}</td>
+            <td><span class="badge ${p.status === "active" ? "ok" : "warn"}">${p.status === "active" ? "ปฏิบัติงาน" : "ไม่ปฏิบัติงาน"}</span></td>
+            <td><div class="row-actions"><button onclick="editRecord('person','${p.id}')">แก้ไข</button><button class="danger" onclick="removeRecord('persons','${p.id}')">ลบ</button></div></td>
+          </tr>`).join("")}</tbody>
+      </table></div>`;
+    }
+
+    function renderWorkloads() {
+      const d = editing.duty ? state.duties.find(x => x.id === editing.duty) : {};
+      const duty = d || {};
+      const filtered = scopedDuties();
+      return `
+        <div class="notice">ระบบจะสร้างวันที่บันทึกอัตโนมัติ และทุกการเพิ่ม/แก้ไข/ลบจะถูกบันทึกใน Audit Log</div>
+        <div class="grid cols-2">
+          <section class="panel">
+            <div class="panel-head"><h3>${editing.duty ? "แก้ไข JD & Workload" : "เพิ่ม JD & Workload"}</h3><button onclick="clearEdit('duty')">ล้างฟอร์ม</button></div>
+            <div class="panel-body">
+              <form id="dutyForm" class="stepper">
+                <input type="hidden" name="id" value="${escapeHtml(duty.id || "")}">
+                <details open>
+                  <summary>ส่วนที่ 1 ข้อมูลทั่วไป</summary>
+                  <div class="inside form-grid">
+                    <div class="field"><label>ปีการศึกษา</label><input name="academicYear" required value="${escapeHtml(duty.academicYear || state.settings.academicYear)}"></div>
+                    <div class="field"><label>หน่วยงาน</label><select name="orgId" required>${orgOptions(duty.orgId || "")}</select></div>
+                    <div class="field"><label>หมวดงานหลัก</label><input name="category" required value="${escapeHtml(duty.category || "")}"></div>
+                    <div class="field"><label>หมวดย่อย</label><input name="subcategory" value="${escapeHtml(duty.subcategory || "")}"></div>
+                    <div class="field span-2"><label>ชื่อภาระงาน</label><input name="title" required value="${escapeHtml(duty.title || "")}"></div>
+                  </div>
+                </details>
+                <details open>
+                  <summary>ส่วนที่ 2 รายละเอียดภาระงาน</summary>
+                  <div class="inside form-grid">
+                    <div class="field span-2"><label>รายละเอียด</label><textarea name="detail">${escapeHtml(duty.detail || "")}</textarea></div>
+                    <div class="field"><label>ผลลัพธ์ที่ต้องส่งมอบ</label><input name="deliverable" value="${escapeHtml(duty.deliverable || "")}"></div>
+                    <div class="field"><label>เอกสาร/ระบบอ้างอิง</label><input name="references" value="${escapeHtml(duty.references || "")}"></div>
+                  </div>
+                </details>
+                <details open>
+                  <summary>ส่วนที่ 3 ผู้เกี่ยวข้อง</summary>
+                  <div class="inside form-grid">
+                    <div class="field"><label>ผู้รับผิดชอบหลัก</label><select name="ownerPersonId" required>${personOptions(duty.ownerPersonId || "")}</select></div>
+                    <div class="field"><label>ตำแหน่งที่รับผิดชอบ</label><select name="ownerPositionId">${positionOptions(duty.ownerPositionId || "")}</select></div>
+                    <div class="field"><label>ผู้ตรวจสอบ</label><select name="supervisorPersonId">${personOptions(duty.supervisorPersonId || "")}</select></div>
+                    <div class="field"><label>ผู้อนุมัติ</label><select name="approverPersonId">${personOptions(duty.approverPersonId || "")}</select></div>
+                  </div>
+                </details>
+                <details open>
+                  <summary>ส่วนที่ 4 ช่วงเวลาดำเนินการ</summary>
+                  <div class="inside months">
+                    ${MONTHS.map(([key, label]) => `<label class="check"><input type="checkbox" name="months" value="${key}" ${(duty.months || []).includes(key) ? "checked" : ""}>${label}</label>`).join("")}
+                  </div>
+                </details>
+                <details open>
+                  <summary>ส่วนที่ 5 ข้อมูล FTB</summary>
+                  <div class="inside form-grid">
+                    <div class="field"><label>นับ FTB</label><select name="isFtbCounted"><option value="true" ${duty.isFtbCounted !== false ? "selected" : ""}>นับ</option><option value="false" ${duty.isFtbCounted === false ? "selected" : ""}>ไม่นับ</option></select></div>
+                    <div class="field"><label>สถานะ</label><select name="status">${["draft","review","approved","locked","returned"].map(s => `<option value="${s}" ${duty.status === s ? "selected" : ""}>${statusText(s)}</option>`).join("")}</select></div>
+                    <div class="field"><label>ปริมาณงาน</label><input name="volume" type="number" step="0.01" min="0" value="${escapeHtml(duty.volume ?? 1)}"></div>
+                    <div class="field"><label>ชั่วโมงต่อหน่วย</label><input name="hoursPerUnit" type="number" step="0.01" min="0" value="${escapeHtml(duty.hoursPerUnit ?? 1)}"></div>
+                    <div class="field"><label>ความถี่ต่อปี</label><input name="frequency" type="number" step="0.01" min="0" value="${escapeHtml(duty.frequency ?? 1)}"></div>
+                    <div class="field"><label>Duty Weight</label><input name="dutyWeight" type="number" step="0.01" min="0" value="${escapeHtml(duty.dutyWeight ?? 1)}"></div>
+                    <div class="field"><label>Role Weight</label><input name="roleWeight" type="number" step="0.01" min="0" value="${escapeHtml(duty.roleWeight ?? 1)}"></div>
+                    <div class="field"><label>Responsibility %</label><input name="responsibilityPercent" type="number" step="1" min="0" max="100" value="${escapeHtml(duty.responsibilityPercent ?? 100)}"></div>
+                    <div class="span-2"><span class="badge blue">FTB ที่คำนวณได้: ${formatNumber(calcDutyFtb(duty))}</span></div>
+                  </div>
+                </details>
+                <details>
+                  <summary>ส่วนที่ 6 เอกสารแนบ</summary>
+                  <div class="inside form-grid">
+                    <div class="field span-2"><label>รายการเอกสารแนบ</label><input name="attachmentsNote" value="${escapeHtml(duty.attachmentsNote || "")}" placeholder="ระบุชื่อไฟล์หรือ URL"></div>
+                  </div>
+                </details>
+                <details>
+                  <summary>ส่วนที่ 7 ส่งตรวจสอบ</summary>
+                  <div class="inside form-grid">
+                    <div class="field span-2"><label>เหตุผล/หมายเหตุการบันทึก</label><input name="reason" placeholder="เหตุผลประกอบ Audit Log"></div>
+                  </div>
+                </details>
+                <div class="status-line">
+                  <button class="primary" type="submit" ${state.settings.role === "viewer" ? "disabled" : ""}>บันทึกภาระงาน</button>
+                  <button type="button" onclick="setDutyStatus('review')" ${!editing.duty ? "disabled" : ""}>ส่งตรวจ</button>
+                  <button type="button" onclick="setDutyStatus('approved')" ${!editing.duty || !["admin","hr"].includes(state.settings.role) ? "disabled" : ""}>อนุมัติ</button>
+                  <button type="button" onclick="setDutyStatus('locked')" ${!editing.duty || state.settings.role !== "admin" ? "disabled" : ""}>ล็อก</button>
+                </div>
+              </form>
+            </div>
+          </section>
+          <section class="panel">
+            <div class="panel-head">
+              <h3>รายการ JD & Workload</h3>
+              <span class="badge">${filtered.length} รายการ</span>
+            </div>
+            <div class="panel-body">
+              <div class="field" style="margin-bottom:10px"><label>ค้นหา</label><input id="workloadSearch" placeholder="ค้นหาชื่อภาระงาน ผู้รับผิดชอบ หรือหน่วยงาน"></div>
+              <div id="workloadList">${renderDutyTable(filtered)}</div>
+            </div>
+          </section>
+        </div>`;
+    }
+
+    function statusText(status) {
+      return { draft: "ร่าง", review: "รอตรวจสอบ", approved: "อนุมัติ", locked: "ล็อก", returned: "ส่งกลับ" }[status] || status;
+    }
+
+    function renderDutyTable(rows) {
+      if (!rows.length) return `<div class="empty">ยังไม่มีภาระงานในขอบเขตนี้</div>`;
+      return `<div class="table-wrap"><table>
+        <thead><tr><th>ภาระงาน</th><th>หน่วยงาน</th><th>ผู้รับผิดชอบ</th><th>เดือน</th><th>FTB</th><th>สถานะ</th><th></th></tr></thead>
+        <tbody>${rows.map(d => `
+          <tr>
+            <td><strong>${escapeHtml(d.title)}</strong><br><small>${escapeHtml(d.category || "-")} / ${escapeHtml(d.subcategory || "-")}</small></td>
+            <td>${escapeHtml(orgName(d.orgId))}</td>
+            <td>${escapeHtml(personName(d.ownerPersonId))}</td>
+            <td>${(d.months || []).length} เดือน</td>
+            <td>${formatNumber(calcDutyFtb(d))}</td>
+            <td>${statusBadge(d.status)}</td>
+            <td><div class="row-actions"><button onclick="editRecord('duty','${d.id}')">แก้ไข</button><button class="danger" onclick="removeRecord('duties','${d.id}')">ลบ</button></div></td>
+          </tr>`).join("")}</tbody>
+      </table></div>`;
+    }
+
+    function renderChart() {
+      const selected = state.orgs.find(o => o.id === selectedOrgId) || state.orgs[0];
+      return `
+        <section class="panel">
+          <div class="panel-head">
+            <h3>Organizational Chart</h3>
+            <div class="row-actions">
+              <button onclick="collapsedOrgs.clear(); render()">ขยายทั้งหมด</button>
+              <button onclick="collapseAll()">ย่อทั้งหมด</button>
+            </div>
+          </div>
+          <div class="panel-body org-layout">
+            <div class="tree">${renderOrgTree()}</div>
+            <aside class="drawer">${renderOrgDrawer(selected)}</aside>
+          </div>
+        </section>`;
+    }
+
+    function renderOrgTree(parentId = "") {
+      const children = state.orgs.filter(o => (o.parentId || "") === parentId);
+      if (!children.length) return parentId ? "" : `<div class="empty">ยังไม่มีโครงสร้างหน่วยงาน</div>`;
+      return `<ul>${children.map(org => {
+        const duties = state.duties.filter(d => d.orgId === org.id);
+        const ftb = duties.reduce((sum, d) => sum + calcDutyFtb(d), 0);
+        const collapsed = collapsedOrgs.has(org.id);
+        return `<li>
+          <div class="node ${selectedOrgId === org.id ? "selected" : ""}" onclick="selectOrg('${org.id}')">
+            <strong>${escapeHtml(org.name)}</strong>
+            <small>${escapeHtml(org.type || "-")} · ${duties.length} JD · ${formatNumber(ftb)} FTB</small>
+            <div class="row-actions">
+              <button type="button" onclick="event.stopPropagation(); toggleCollapse('${org.id}')">${collapsed ? "ขยาย" : "ย่อ"}</button>
+            </div>
+          </div>
+          ${collapsed ? "" : renderOrgTree(org.id)}
+        </li>`;
+      }).join("")}</ul>`;
+    }
+
+    function renderOrgDrawer(org) {
+      if (!org) return `<div class="empty">เลือก node เพื่อดูรายละเอียด</div>`;
+      const orgIds = new Set([org.id, ...descendantOrgIds(org.id)]);
+      const duties = state.duties.filter(d => orgIds.has(d.orgId));
+      const persons = state.persons.filter(p => orgIds.has(p.orgId));
+      const ftb = duties.reduce((sum, d) => sum + calcDutyFtb(d), 0);
+      const available = persons.reduce((sum, p) => sum + availableFtb(p), 0);
+      return `
+        <div>
+          <h3 style="margin:0 0 6px">${escapeHtml(org.name)}</h3>
+          <div class="status-line">
+            <span class="badge">${escapeHtml(org.type || "-")}</span>
+            <span class="badge ${org.active ? "ok" : "warn"}">${org.active ? "ใช้งาน" : "ปิดใช้งาน"}</span>
+          </div>
+        </div>
+        <div class="grid cols-2">
+          <div class="kpi"><span>JD</span><strong>${duties.length}</strong><small>ใน node และลูก</small></div>
+          <div class="kpi"><span>FTB</span><strong>${formatNumber(ftb)}</strong><small>${utilBadge(available ? ftb / available : 0)}</small></div>
+        </div>
+        <div><strong>ผู้บริหารกำกับดูแล</strong><br>${escapeHtml(personName(org.managerPersonId))}</div>
+        <div><strong>JD Summary</strong>${duties.slice(0, 6).map(d => `<div style="margin-top:8px">${statusBadge(d.status)} ${escapeHtml(d.title)} <small>${formatNumber(calcDutyFtb(d))} FTB</small></div>`).join("") || `<div class="empty">ยังไม่มี JD</div>`}</div>
+      `;
+    }
+
+    function renderReports() {
+      return `
+        <div class="grid cols-2">
+          <section class="panel">
+            <div class="panel-head"><h3>รายงาน FTB รายบุคคล</h3><button onclick="exportPeopleCsv()">ส่งออก CSV</button></div>
+            <div class="panel-body">${renderPersonTable(personUtilization())}</div>
+          </section>
+          <section class="panel">
+            <div class="panel-head"><h3>รายงาน FTB รายหน่วยงาน</h3><button onclick="exportOrgCsv()">ส่งออก CSV</button></div>
+            <div class="panel-body">
+              <div class="table-wrap"><table>
+                <thead><tr><th>หน่วยงาน</th><th>FTB</th><th>Available FTB</th><th>Utilization</th></tr></thead>
+                <tbody>${orgUtilization().map(r => `<tr><td>${escapeHtml(r.org.name)}</td><td>${formatNumber(r.ftb)}</td><td>${formatNumber(r.available)}</td><td>${utilBadge(r.utilization)}</td></tr>`).join("")}</tbody>
+              </table></div>
+            </div>
+          </section>
+        </div>
+        <section class="panel">
+          <div class="panel-head"><h3>รายงานภาระงาน</h3><div class="row-actions"><button onclick="exportDutiesCsv()">ส่งออก CSV</button><button onclick="downloadSnapshot()">Snapshot JSON</button></div></div>
+          <div class="panel-body">${renderDutyTable(scopedDuties())}</div>
+        </section>`;
+    }
+
+    function renderAudit() {
+      return `
+        <section class="panel">
+          <div class="panel-head">
+            <h3>Audit Log</h3>
+            <div class="row-actions"><button onclick="exportAuditCsv()">ส่งออก CSV</button><button class="danger" onclick="resetDemoData()">รีเซ็ตข้อมูลตัวอย่าง</button></div>
+          </div>
+          <div class="panel-body">
+            <div class="table-wrap"><table>
+              <thead><tr><th>เวลา</th><th>ตาราง</th><th>Record</th><th>Action</th><th>ผู้แก้ไข</th><th>เหตุผล</th><th>ค่าใหม่</th></tr></thead>
+              <tbody>${state.auditLogs.map(log => `
+                <tr>
+                  <td>${new Date(log.changedAt).toLocaleString("th-TH")}</td>
+                  <td>${escapeHtml(log.tableName)}</td>
+                  <td>${escapeHtml(log.recordId)}</td>
+                  <td>${escapeHtml(log.actionType)}</td>
+                  <td>${escapeHtml(log.changedBy)}</td>
+                  <td>${escapeHtml(log.reason || "-")}</td>
+                  <td><small>${escapeHtml(log.newValue).slice(0, 160)}</small></td>
+                </tr>`).join("")}</tbody>
+            </table></div>
+          </div>
+        </section>`;
+    }
+
+    function wireCurrentView() {
+      const role = document.getElementById("roleSelect");
+      const scope = document.getElementById("scopeSelect");
+      role.onchange = () => {
+        const old = { ...state.settings };
+        state.settings.role = role.value;
+        logChange("settings", "role", "switch-role", old, state.settings, "เปลี่ยนบทบาทในต้นแบบ");
+        saveState();
+        render();
+      };
+      scope.onchange = () => {
+        const old = { ...state.settings };
+        state.settings.orgScope = scope.value;
+        logChange("settings", "scope", "switch-scope", old, state.settings, "เปลี่ยนขอบเขตหน่วยงาน");
+        saveState();
+        render();
+      };
+
+      const orgForm = document.getElementById("orgForm");
+      if (orgForm) orgForm.onsubmit = submitOrg;
+      const positionForm = document.getElementById("positionForm");
+      if (positionForm) positionForm.onsubmit = submitPosition;
+      const personForm = document.getElementById("personForm");
+      if (personForm) personForm.onsubmit = submitPerson;
+      const dutyForm = document.getElementById("dutyForm");
+      if (dutyForm) dutyForm.onsubmit = submitDuty;
+
+      const workloadSearch = document.getElementById("workloadSearch");
+      if (workloadSearch) {
+        workloadSearch.oninput = () => {
+          const q = workloadSearch.value.trim().toLowerCase();
+          const rows = scopedDuties().filter(d => [d.title, d.category, orgName(d.orgId), personName(d.ownerPersonId)].join(" ").toLowerCase().includes(q));
+          document.getElementById("workloadList").innerHTML = renderDutyTable(rows);
+        };
+      }
+    }
+
+    function formData(form) {
+      return Object.fromEntries(new FormData(form).entries());
+    }
+
+    function submitOrg(event) {
+      event.preventDefault();
+      const data = formData(event.target);
+      const item = { id: data.id || uid("org"), name: data.name.trim(), type: data.type.trim(), parentId: data.parentId, managerPersonId: data.managerPersonId, active: data.active === "true" };
+      if (item.parentId === item.id) return alert("หน่วยงานแม่ต้องไม่เป็นหน่วยงานเดียวกัน");
+      upsert("orgs", item, "บันทึกหน่วยงาน");
+      editing.org = null;
+      render();
+    }
+
+    function submitPosition(event) {
+      event.preventDefault();
+      const data = formData(event.target);
+      const item = { id: data.id || uid("pos"), name: data.name.trim(), orgId: data.orgId, level: data.level.trim(), type: data.type.trim(), supervisorPositionId: data.supervisorPositionId, active: data.active === "true" };
+      if (!canEdit(item.orgId)) return alert("บทบาทนี้ไม่มีสิทธิ์แก้ไขหน่วยงานที่เลือก");
+      upsert("positions", item, "บันทึกตำแหน่ง");
+      editing.position = null;
+      render();
+    }
+
+    function submitPerson(event) {
+      event.preventDefault();
+      const data = formData(event.target);
+      const item = { id: data.id || uid("p"), code: data.code.trim(), name: data.name.trim(), email: data.email.trim(), orgId: data.orgId, positionId: data.positionId, fteRatio: Number(data.fteRatio || 1), status: data.status };
+      if (!canEdit(item.orgId)) return alert("บทบาทนี้ไม่มีสิทธิ์แก้ไขหน่วยงานที่เลือก");
+      upsert("persons", item, "บันทึกบุคลากร");
+      editing.person = null;
+      render();
+    }
+
+    function submitDuty(event) {
+      event.preventDefault();
+      const form = event.target;
+      const data = formData(form);
+      const months = [...form.querySelectorAll('input[name="months"]:checked')].map(x => x.value);
+      if (!months.length) return alert("กรุณาเลือกเดือนดำเนินการอย่างน้อย 1 เดือน");
+      if (!data.ownerPersonId) return alert("กรุณากำหนดผู้รับผิดชอบหลัก");
+      if (!canEdit(data.orgId)) return alert("บทบาทนี้ไม่มีสิทธิ์แก้ไขหน่วยงานที่เลือก");
+      const old = state.duties.find(d => d.id === data.id);
+      if (old && ["approved", "locked"].includes(old.status) && !["admin", "hr"].includes(state.settings.role)) {
+        return alert("ข้อมูลที่อนุมัติหรือล็อกแล้วต้องให้ HR/Admin แก้ไขพร้อมเหตุผล");
+      }
+      const item = {
+        id: data.id || uid("d"),
+        academicYear: data.academicYear.trim(),
+        orgId: data.orgId,
+        category: data.category.trim(),
+        subcategory: data.subcategory.trim(),
+        title: data.title.trim(),
+        detail: data.detail.trim(),
+        deliverable: data.deliverable.trim(),
+        references: data.references.trim(),
+        frequency: Number(data.frequency || 0),
+        volume: Number(data.volume || 0),
+        hoursPerUnit: Number(data.hoursPerUnit || 0),
+        dutyWeight: Number(data.dutyWeight || 1),
+        roleWeight: Number(data.roleWeight || 1),
+        responsibilityPercent: Number(data.responsibilityPercent || 0),
+        ownerPersonId: data.ownerPersonId,
+        ownerPositionId: data.ownerPositionId,
+        supervisorPersonId: data.supervisorPersonId,
+        approverPersonId: data.approverPersonId,
+        months,
+        status: data.status,
+        isFtbCounted: data.isFtbCounted === "true",
+        attachmentsNote: data.attachmentsNote || "",
+        createdAt: old?.createdAt || nowIso(),
+        updatedAt: nowIso()
+      };
+      upsert("duties", item, data.reason || "บันทึก JD & Workload");
+      editing.duty = null;
+      render();
+    }
+
+    function upsert(collection, item, reason) {
+      const idx = state[collection].findIndex(x => x.id === item.id);
+      if (idx >= 0) {
+        const old = state[collection][idx];
+        state[collection][idx] = item;
+        logChange(collection, item.id, "update", old, item, reason);
+      } else {
+        state[collection].push(item);
+        logChange(collection, item.id, "create", "", item, reason);
+      }
+      saveState();
+    }
+
+    function editRecord(type, id) {
+      editing[type] = id;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      render();
+    }
+
+    function clearEdit(type) {
+      editing[type] = null;
+      render();
+    }
+
+    function removeRecord(collection, id) {
+      if (state.settings.role === "viewer") return alert("Viewer ไม่มีสิทธิ์ลบข้อมูล");
+      const item = state[collection].find(x => x.id === id);
+      if (!item) return;
+      if (item.orgId && !canEdit(item.orgId)) return alert("บทบาทนี้ไม่มีสิทธิ์ลบข้อมูลในหน่วยงานนี้");
+      const label = item.name || item.title || id;
+      if (!confirm(`ยืนยันลบ "${label}"?`)) return;
+      state[collection] = state[collection].filter(x => x.id !== id);
+      logChange(collection, id, "delete", item, "", "ลบข้อมูล");
+      saveState();
+      render();
+    }
+
+    function setDutyStatus(status) {
+      const duty = state.duties.find(d => d.id === editing.duty);
+      if (!duty) return;
+      if (["approved", "locked"].includes(status) && !["admin", "hr"].includes(state.settings.role)) {
+        return alert("เฉพาะ HR/Admin เท่านั้นที่อนุมัติหรือล็อกข้อมูลได้");
+      }
+      const old = { ...duty };
+      duty.status = status;
+      duty.updatedAt = nowIso();
+      logChange("duties", duty.id, "status", old, duty, `เปลี่ยนสถานะเป็น ${statusText(status)}`);
+      saveState();
+      render();
+    }
+
+    function toggleCollapse(id) {
+      if (collapsedOrgs.has(id)) collapsedOrgs.delete(id);
+      else collapsedOrgs.add(id);
+      render();
+    }
+
+    function collapseAll() {
+      collapsedOrgs = new Set(state.orgs.map(o => o.id));
+      render();
+    }
+
+    function selectOrg(id) {
+      selectedOrgId = id;
+      render();
+    }
+
+    function rowsToCsv(rows) {
+      return rows.map(row => row.map(cell => `"${String(cell ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
+    }
+
+    function download(filename, content, type = "text/plain;charset=utf-8") {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportDutiesCsv() {
+      const rows = [["id","academic_year","org","title","owner","months","ftb","status"], ...scopedDuties().map(d => [d.id, d.academicYear, orgName(d.orgId), d.title, personName(d.ownerPersonId), d.months.join("|"), calcDutyFtb(d), d.status])];
+      download("spu-workloads.csv", "\ufeff" + rowsToCsv(rows), "text/csv;charset=utf-8");
+    }
+
+    function exportPeopleCsv() {
+      const rows = [["person","org","position","ftb","available_ftb","utilization"], ...personUtilization().map(r => [r.person.name, orgName(r.person.orgId), positionName(r.person.positionId), r.ftb, r.available, r.utilization])];
+      download("spu-person-ftb.csv", "\ufeff" + rowsToCsv(rows), "text/csv;charset=utf-8");
+    }
+
+    function exportOrgCsv() {
+      const rows = [["org","ftb","available_ftb","utilization"], ...orgUtilization().map(r => [r.org.name, r.ftb, r.available, r.utilization])];
+      download("spu-org-ftb.csv", "\ufeff" + rowsToCsv(rows), "text/csv;charset=utf-8");
+    }
+
+    function exportAuditCsv() {
+      const rows = [["time","table","record","action","changed_by","reason","new_value"], ...state.auditLogs.map(l => [l.changedAt, l.tableName, l.recordId, l.actionType, l.changedBy, l.reason, l.newValue])];
+      download("spu-audit-log.csv", "\ufeff" + rowsToCsv(rows), "text/csv;charset=utf-8");
+    }
+
+    function downloadSnapshot() {
+      const snapshot = {
+        snapshotDate: nowIso(),
+        academicYear: state.settings.academicYear,
+        standardHours: state.settings.standardHours,
+        summary: {
+          totalAnnualFtb: scopedDuties().reduce((sum, d) => sum + calcDutyFtb(d), 0),
+          totalAvailableFtb: state.persons.filter(p => accessibleOrgIds().includes(p.orgId)).reduce((sum, p) => sum + availableFtb(p), 0)
+        },
+        orgs: orgUtilization(),
+        persons: personUtilization(),
+        duties: scopedDuties()
+      };
+      download("spu-ftb-snapshot.json", JSON.stringify(snapshot, null, 2), "application/json;charset=utf-8");
+    }
+
+    function resetDemoData() {
+      if (!confirm("รีเซ็ตข้อมูลทั้งหมดกลับเป็น seed data?")) return;
+      state = structuredClone(seed);
+      saveState();
+      render();
+    }
+
+    render();
+  </script>
+</body>
+</html>
